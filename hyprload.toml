@@ -1,0 +1,10 @@
+[virtual-desktops]
+description = "Virtual desktops"
+version = "1.0.0"
+author = "LevMyskin"
+
+[virtual-desktops.build]
+output = "virtual-desktops.so"
+steps = [
+    "make all",
+]
