@@ -29,11 +29,11 @@ on virtual desktop 2, you will always have workspace 3 on screen 1 and workspace
 
 This plugin exposes a few hyprctl dispatchers:
 
-| Dispatcher | descritpion | type |
-|------------|-------------|------|
-| vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below |
-| prevdesk | Changes to previous virtual desktop | `none` |
-| printdesk | Prints to Hyprland log the currently active vdesk* | `none`|
+| Dispatcher | descritpion | type | example|
+|------------|-------------|------|--------|
+| vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below | `vdesk 3` or `vdesk coding`|
+| prevdesk | Changes to previous virtual desktop | `none` | `prevdesk`|
+| printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see below | `printdesk` or `printdesk 2` or `printdesk coding`|
 
 \*`printdesk` currently prints to the active Hyprland session log, thus probably not really useful. 
 
