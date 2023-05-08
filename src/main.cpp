@@ -3,9 +3,9 @@
 #include <src/helpers/Color.hpp>
 #include <src/helpers/MiscFunctions.hpp>
 #include <src/helpers/Workspace.hpp>
-#include <src/debug/Log.hpp>
 
 #include "globals.hpp"
+#include "utils.hpp"
 
 #include <any>
 #include <iostream>
@@ -25,48 +25,7 @@ std::map<int, std::string> virtualDeskNames              = {{1, "1"}};
 int                        prevVDesk                     = -1;
 int                        currentVDesk                  = 1; // when plugin is launched, we assume we start at vdesk 1
 
-void                       printLog(std::string s) {
-    Debug::log(INFO, ("[virtual-desktops] " + s).c_str());
-    // std::cout << "[virtual-desktops] " + s << std::endl;
-}
-
-void parseNamesConf(std::string& conf) {
-    size_t      pos;
-    size_t      delim;
-    std::string rule;
-    try {
-        while ((pos = conf.find(',')) != std::string::npos) {
-            rule = conf.substr(0, pos);
-            if ((delim = rule.find(':')) != std::string::npos) {
-                int vdeskId               = std::stoi(rule.substr(0, delim));
-                virtualDeskNames[vdeskId] = rule.substr(delim + 1);
-            }
-            conf.erase(0, pos + 1);
-        }
-        if ((delim = conf.find(':')) != std::string::npos) {
-            int vdeskId               = std::stoi(conf.substr(0, delim));
-            virtualDeskNames[vdeskId] = conf.substr(delim + 1);
-        }
-    } catch (std::exception const& ex) {
-        // #aa1245
-        HyprlandAPI::addNotification(PHANDLE, "Syntax error in your virtual-desktops names config", CColor{4289335877}, 8000);
-    }
-}
-
-std::string parseMoveDispatch(std::string& arg) {
-    size_t      pos;
-    std::string vdeskName;
-    if ((pos = arg.find(',')) != std::string::npos) {
-        vdeskName = arg.substr(0, pos);
-        arg.erase(0, pos + 1);
-    } else {
-        vdeskName = arg;
-        arg       = "";
-    }
-    return vdeskName;
-}
-
-void changeVDesk(int vdesk) {
+void                       changeVDesk(int vdesk) {
     if (vdesk == -1) {
         return;
     }
@@ -90,8 +49,8 @@ void changeVDesk(int vdesk) {
             g_pCompositor->swapActiveWorkspaces(currentMonitor, g_pCompositor->m_vMonitors[other].get());
         } else if (n_monitors > 2) {
             printLog("Cycling workspaces is not yet implemented for more than 2 monitors."
-                     "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
-                     "better, open a PR :)");
+                                                                 "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
+                                                                 "better, open a PR :)");
         }
         return;
     }
@@ -141,7 +100,7 @@ int getOrCreateDeskIdWithName(const std::string& name) {
 
 void virtualDeskDispatch(std::string arg) {
     static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseNamesConf(*PVDESKNAMES);
+    Utils::parseNamesConf(*PVDESKNAMES, virtualDeskNames);
     int vdesk;
     try {
         vdesk = std::stoi(arg);
@@ -168,7 +127,7 @@ int moveToDesk(std::string& arg) {
     }
 
     int  vdeskId;
-    auto vdeskName  = parseMoveDispatch(arg);
+    auto vdeskName  = Utils::parseMoveDispatch(arg);
     auto n_monitors = g_pCompositor->m_vMonitors.size();
     try {
         vdeskId = std::stoi(vdeskName);
@@ -205,10 +164,10 @@ void printVdesk(std::string name) {
 
 void printVDeskDispatch(std::string arg) {
     static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseNamesConf(*PVDESKNAMES);
+    Utils::parseNamesConf(*PVDESKNAMES, virtualDeskNames);
     if (arg == PRINTDESK_DISPATCH_STR) {
         printVdesk(currentVDesk);
-    } else
+    } else {
         try {
             // maybe id
             printVdesk(std::stoi(arg));
@@ -216,6 +175,8 @@ void printVDeskDispatch(std::string arg) {
             // by name then
             printVdesk(arg);
         }
+    }
+    Utils::getMonitorsLeftToRight();
 }
 
 void onWorkspaceChange(void*, std::any val) {

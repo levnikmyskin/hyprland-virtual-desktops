@@ -5,6 +5,7 @@
 PLUGIN_NAME=virtual-desktops
 
 SOURCE_FILES=$(wildcard src/*.cpp)
+SOURCE_FILES+=$(wildcard include/*.cpp)
 
 COMPILE_FLAGS=-g -fPIC --no-gnu-unique -std=c++23
 COMPILE_FLAGS+=-I "/usr/include/pixman-1"
