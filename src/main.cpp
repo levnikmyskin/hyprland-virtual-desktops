@@ -13,22 +13,24 @@
 #include <math.h>
 #include <vector>
 
-static HOOK_CALLBACK_FN*   onWorkspaceChangeHook  = nullptr;
-const std::string          VIRTUALDESK_NAMES_CONF = "plugin:virtual-desktops:names";
-const std::string          CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspaces";
-const std::string          VDESK_DISPATCH_STR     = "vdesk";
-const std::string          PREVDESK_DISPATCH_STR  = "prevdesk";
-const std::string          PRINTDESK_DISPATCH_STR = "printdesk";
-std::map<int, std::string> virtualDeskNames       = {{1, "1"}};
-int                        prevVDesk              = -1;
-int                        currentVDesk           = 1; // when plugin is launched, we assume we start at vdesk 1
+static HOOK_CALLBACK_FN*   onWorkspaceChangeHook         = nullptr;
+const std::string          VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
+const std::string          CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";
+const std::string          VDESK_DISPATCH_STR            = "vdesk";
+const std::string          MOVETODESK_DISPATCH_STR       = "movetodesk";
+const std::string          MOVETODESKSILENT_DISPATCH_STR = "movetodesksilent";
+const std::string          PREVDESK_DISPATCH_STR         = "prevdesk";
+const std::string          PRINTDESK_DISPATCH_STR        = "printdesk";
+std::map<int, std::string> virtualDeskNames              = {{1, "1"}};
+int                        prevVDesk                     = -1;
+int                        currentVDesk                  = 1; // when plugin is launched, we assume we start at vdesk 1
 
 void                       printLog(std::string s) {
     Debug::log(INFO, ("[virtual-desktops] " + s).c_str());
     // std::cout << "[virtual-desktops] " + s << std::endl;
 }
 
-void parseConf(std::string conf) {
+void parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -51,20 +53,23 @@ void parseConf(std::string conf) {
     }
 }
 
-void printVdesk(int vdeskId) {
-    printLog("VDesk " + std::to_string(vdeskId) + ": " + virtualDeskNames[vdeskId]);
-}
-
-void printVdesk(std::string name) {
-    for (auto const& [key, val] : virtualDeskNames) {
-        if (val == name) {
-            printLog("Vdesk " + std::to_string(key) + ": " + val);
-            return;
-        }
+std::string parseMoveDispatch(std::string& arg) {
+    size_t      pos;
+    std::string vdeskName;
+    if ((pos = arg.find(',')) != std::string::npos) {
+        vdeskName = arg.substr(0, pos);
+        arg.erase(0, pos + 1);
+    } else {
+        vdeskName = arg;
+        arg       = "";
     }
+    return vdeskName;
 }
 
 void changeVDesk(int vdesk) {
+    if (vdesk == -1) {
+        return;
+    }
     auto      n_monitors     = g_pCompositor->m_vMonitors.size();
     CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
     if (!currentMonitor) {
@@ -90,8 +95,10 @@ void changeVDesk(int vdesk) {
         }
         return;
     }
-    auto vdeskFirstWorkspace = (vdesk - 1) * n_monitors + 1;
-    int  j                   = 0;
+    auto        vdeskFirstWorkspace = (vdesk - 1) * n_monitors + 1;
+    int         j                   = 0;
+
+    CWorkspace* focusedWorkspace;
     for (int i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + n_monitors; i++) {
         CWorkspace* workspace = g_pCompositor->getWorkspaceByID(i);
         auto        mon       = g_pCompositor->m_vMonitors[j];
@@ -99,38 +106,46 @@ void changeVDesk(int vdesk) {
             printLog("Creating workspace " + std::to_string(i));
             workspace = g_pCompositor->createNewWorkspace(i, mon->ID);
         }
+        // Hack: we change the workspace on the current monitor as our last operation,
+        // so that we also automatically focus it
+        if (mon->ID == currentMonitor->ID) {
+            focusedWorkspace = workspace;
+            j++;
+            continue;
+        }
         g_pCompositor->m_vMonitors[j]->changeWorkspace(workspace, false);
         j++;
     }
-    g_pCompositor->setActiveMonitor(currentMonitor);
+    currentMonitor->changeWorkspace(focusedWorkspace, false);
+}
+
+int getOrCreateDeskIdWithName(const std::string& name) {
+    int  max_key = -1;
+    bool found   = false;
+    int  vdesk;
+    for (auto const& [key, val] : virtualDeskNames) {
+        if (val == name) {
+            vdesk = key;
+            found = true;
+            break;
+        }
+        if (key > max_key)
+            max_key = key;
+    }
+    if (!found) {
+        vdesk                   = max_key + 1;
+        virtualDeskNames[vdesk] = name;
+    }
+    return vdesk;
 }
 
 void virtualDeskDispatch(std::string arg) {
     static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseConf(*PVDESKNAMES);
+    parseNamesConf(*PVDESKNAMES);
     int vdesk;
     try {
         vdesk = std::stoi(arg);
-    } catch (std::exception const& ex) {
-        // user input a vdesk name. If we have it already,
-        // we switch to it, otherwise we simply assign the name
-        // to the next available vdesk
-        int  max_key = -1;
-        bool found   = false;
-        for (auto const& [key, val] : virtualDeskNames) {
-            if (val == arg) {
-                vdesk = key;
-                found = true;
-                break;
-            }
-            if (key > max_key)
-                max_key = key;
-        }
-        if (!found) {
-            vdesk                   = max_key + 1;
-            virtualDeskNames[vdesk] = arg;
-        }
-    }
+    } catch (std::exception const& ex) { vdesk = getOrCreateDeskIdWithName(arg); }
     changeVDesk(vdesk);
 }
 
@@ -142,9 +157,55 @@ void goPreviousVDeskDispatch(std::string _) {
     changeVDesk(prevVDesk);
 }
 
+int moveToDesk(std::string& arg) {
+    // TODO this should be improved:
+    //   1. if there's an empty workspace on the specified vdesk, we should move the window there;
+    //   2. we should give a way to specify on which workspace to move the window. It'd be best if user could specify 1,2,3
+    //      and we move the window to the first, second or third monitor on the vdesk (from left to right)
+    if (arg == MOVETODESK_DISPATCH_STR) {
+        // TODO notify about missing args
+        return -1;
+    }
+
+    int  vdeskId;
+    auto vdeskName  = parseMoveDispatch(arg);
+    auto n_monitors = g_pCompositor->m_vMonitors.size();
+    try {
+        vdeskId = std::stoi(vdeskName);
+    } catch (std::exception& _) { vdeskId = getOrCreateDeskIdWithName(vdeskName); }
+
+    // just take the first workspace of the vdesk
+    auto        wid     = (vdeskId * n_monitors) - (n_monitors - 1);
+    std::string moveCmd = std::to_string(wid) + "," + arg;
+
+    HyprlandAPI::invokeHyprctlCommand("dispatch", "movetoworkspacesilent " + moveCmd);
+    return vdeskId;
+}
+
+void moveToDeskDispatch(std::string arg) {
+    changeVDesk(moveToDesk(arg));
+}
+
+void moveToDeskSilentDispatch(std::string arg) {
+    moveToDesk(arg);
+}
+
+void printVdesk(int vdeskId) {
+    printLog("VDesk " + std::to_string(vdeskId) + ": " + virtualDeskNames[vdeskId]);
+}
+
+void printVdesk(std::string name) {
+    for (auto const& [key, val] : virtualDeskNames) {
+        if (val == name) {
+            printLog("Vdesk " + std::to_string(key) + ": " + val);
+            return;
+        }
+    }
+}
+
 void printVDeskDispatch(std::string arg) {
     static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseConf(*PVDESKNAMES);
+    parseNamesConf(*PVDESKNAMES);
     if (arg == PRINTDESK_DISPATCH_STR) {
         printVdesk(currentVDesk);
     } else
@@ -176,6 +237,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPreviousVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PRINTDESK_DISPATCH_STR, printVDeskDispatch);
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
     HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, SConfigValue{.intValue = 1});
