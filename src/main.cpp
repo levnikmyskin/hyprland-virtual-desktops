@@ -175,8 +175,13 @@ int moveToDesk(std::string& arg) {
     } catch (std::exception& _) { vdeskId = getOrCreateDeskIdWithName(vdeskName); }
 
     // just take the first workspace of the vdesk
-    auto        wid     = (vdeskId * n_monitors) - (n_monitors - 1);
-    std::string moveCmd = std::to_string(wid) + "," + arg;
+    auto        wid = (vdeskId * n_monitors) - (n_monitors - 1);
+    std::string moveCmd;
+    if (arg == "") {
+        moveCmd = std::to_string(wid);
+    } else {
+        moveCmd = std::to_string(wid) + "," + arg;
+    }
 
     HyprlandAPI::invokeHyprctlCommand("dispatch", "movetoworkspacesilent " + moveCmd);
     return vdeskId;
