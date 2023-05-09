@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/helpers/Monitor.hpp"
 #include <string>
 #include <map>
 #include <vector>
@@ -10,7 +11,7 @@ inline void printLog(const std::string& s) {
 }
 
 namespace Utils {
-    void             parseNamesConf(std::string&, std::map<int, std::string>&);
-    std::string      parseMoveDispatch(std::string&);
-    std::vector<int> getMonitorsLeftToRight();
+    void                                   parseNamesConf(std::string&, std::map<int, std::string>&);
+    std::string                            parseMoveDispatch(std::string&);
+    std::vector<std::shared_ptr<CMonitor>> getMonitorsLeftToRight();
 }

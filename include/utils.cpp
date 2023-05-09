@@ -1,5 +1,8 @@
 #include "utils.hpp"
 #include "globals.hpp"
+
+#include <algorithm>
+#include <iostream>
 #include <src/Compositor.hpp>
 
 void Utils::parseNamesConf(std::string& conf, std::map<int, std::string>& virtualDeskNames) {
@@ -38,29 +41,10 @@ std::string Utils::parseMoveDispatch(std::string& arg) {
     return vdeskName;
 }
 
-std::vector<int> Utils::getMonitorsLeftToRight() {
-    std::vector<int> mons;
-    auto             currentMonitor = g_pCompositor->m_pLastMonitor;
-    if (!currentMonitor)
-        return mons;
-    CMonitor* mon;
+std::vector<std::shared_ptr<CMonitor>> Utils::getMonitorsLeftToRight() {
+    auto monitors = g_pCompositor->m_vMonitors;
 
-    for (auto& mon : g_pCompositor->m_vMonitors) {
-        if (mon->vecPosition.x == 0) {
-            printLog("Found leftmost screen, id " + std::to_string(mon->ID) + " name " + mon->szName);
-            mons.push_back(mon->ID);
-            g_pCompositor->m_pLastMonitor = mon.get();
-            break;
-        }
-    }
+    std::sort(monitors.begin(), monitors.end(), [](std::shared_ptr<CMonitor> m1, std::shared_ptr<CMonitor> m2) { return m1->vecPosition.x < m2->vecPosition.x; });
 
-    while ((mon = g_pCompositor->getMonitorInDirection('r'))) {
-        mons.push_back(mon->ID);
-    }
-
-    g_pCompositor->m_pLastMonitor = currentMonitor;
-    for (int i = 0; i < mons.size(); i++) {
-        printLog("Screen with id " + std::to_string(mons[i]) + " at position " + std::to_string(i + 1));
-    }
-    return mons;
+    return monitors;
 }

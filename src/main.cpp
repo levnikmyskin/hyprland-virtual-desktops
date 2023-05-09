@@ -13,19 +13,24 @@
 #include <math.h>
 #include <vector>
 
-static HOOK_CALLBACK_FN*   onWorkspaceChangeHook         = nullptr;
-const std::string          VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
-const std::string          CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";
-const std::string          VDESK_DISPATCH_STR            = "vdesk";
-const std::string          MOVETODESK_DISPATCH_STR       = "movetodesk";
-const std::string          MOVETODESKSILENT_DISPATCH_STR = "movetodesksilent";
-const std::string          PREVDESK_DISPATCH_STR         = "prevdesk";
-const std::string          PRINTDESK_DISPATCH_STR        = "printdesk";
-std::map<int, std::string> virtualDeskNames              = {{1, "1"}};
-int                        prevVDesk                     = -1;
-int                        currentVDesk                  = 1; // when plugin is launched, we assume we start at vdesk 1
+const std::string                      VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
+const std::string                      CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";
+const std::string                      VDESK_DISPATCH_STR            = "vdesk";
+const std::string                      MOVETODESK_DISPATCH_STR       = "movetodesk";
+const std::string                      MOVETODESKSILENT_DISPATCH_STR = "movetodesksilent";
+const std::string                      PREVDESK_DISPATCH_STR         = "prevdesk";
+const std::string                      PRINTDESK_DISPATCH_STR        = "printdesk";
 
-void                       changeVDesk(int vdesk) {
+std::map<int, std::string>             virtualDeskNames = {{1, "1"}};
+std::vector<std::shared_ptr<CMonitor>> leftRightMonitors;
+int                                    prevVDesk    = -1;
+int                                    currentVDesk = 1; // when plugin is launched, we assume we start at vdesk 1
+
+static HOOK_CALLBACK_FN*               workspaceChangeHandle = nullptr;
+static HOOK_CALLBACK_FN*               monitorAddedHandle    = nullptr;
+static HOOK_CALLBACK_FN*               monitorRemovedHandle  = nullptr;
+
+void                                   changeVDesk(int vdesk) {
     if (vdesk == -1) {
         return;
     }
@@ -42,15 +47,16 @@ void                       changeVDesk(int vdesk) {
         if (!*PCYCLEWORKSPACES)
             return;
         // TODO implement for more than two monitors as well.
-        // This probably requires to compute monitors position
+        // initial work is done for at least left-right movement,
+        // since we have a list of sorted monitors in leftRightMonitors vector,
         // in order to consistently move left/right or up/down.
         if (n_monitors == 2) {
             int other = g_pCompositor->m_vMonitors[0]->ID == currentMonitor->ID;
             g_pCompositor->swapActiveWorkspaces(currentMonitor, g_pCompositor->m_vMonitors[other].get());
         } else if (n_monitors > 2) {
             printLog("Cycling workspaces is not yet implemented for more than 2 monitors."
-                                                                 "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
-                                                                 "better, open a PR :)");
+                                                                                         "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
+                                                                                         "better, open a PR :)");
         }
         return;
     }
@@ -176,7 +182,11 @@ void printVDeskDispatch(std::string arg) {
             printVdesk(arg);
         }
     }
-    Utils::getMonitorsLeftToRight();
+    for (auto m : leftRightMonitors) {
+        if (!m->output)
+            continue;
+        std::cout << "mon id: " << m->ID << ", name: " << m->szName << std::endl;
+    }
 }
 
 void onWorkspaceChange(void*, std::any val) {
@@ -186,6 +196,10 @@ void onWorkspaceChange(void*, std::any val) {
     if (currentVDesk != newDesk)
         prevVDesk = currentVDesk;
     currentVDesk = newDesk;
+}
+
+void refreshMonitorMapping(void*, std::any _) {
+    leftRightMonitors = Utils::getMonitorsLeftToRight();
 }
 
 // Do NOT change this function.
@@ -204,7 +218,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
     HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, SConfigValue{.intValue = 1});
 
-    onWorkspaceChangeHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
+    workspaceChangeHandle = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
+    monitorAddedHandle    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", refreshMonitorMapping);
+    monitorRemovedHandle  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", refreshMonitorMapping);
+
+    leftRightMonitors = Utils::getMonitorsLeftToRight();
     HyprlandAPI::reloadConfig();
     HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CColor{0.f, 1.f, 1.f, 1.f}, 5000);
 
