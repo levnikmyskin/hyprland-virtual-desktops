@@ -50,9 +50,13 @@ plugin will remember this association even if Hyprland kills the related workspa
 The `movetodesk` and `movetodesksilent` dispatchers work similarly to 
 Hyprland's `movetoworkspace` and `movetoworkspacesilent` dispatchers. See [Hyprland's wiki](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers). Of course, make sure to use the `vdesk` syntax above instead of Hyprland's.
 
-#### Don't mix with Hyprland native workspaces
-I wouldn't mix this with any of Hyprland native workspaces functionality. For instance, instead of using `hyprctl dispatch workspace n` use 
-`hyprctl dispatch vdesk n`, even if you have no secondary screen connected at the moment (the behaviour would be identical to native workspaces). Also, I would REMOVE
+#### Mix with Hyprland native workspaces, but know what you're doing 
+You can mix this with Hyprland native workspaces functionality, but beware
+of how this plugin manages workspaces. Every vdesk will _always_ operate on the _same_ set of workspaces. If you're on vdesk 1, with 2 monitors, and
+switch monitor 2 to workspace 4, switching to vdesk 2 will always show workspaces 3 and 4 (and switching back to vdesk 1 will show workspace 1 and 
+2).  
+Also notice that you can use `hyprctl dispatch vdesk n`, even if you have 
+no secondary screen connected at the moment (the behaviour would be identical to native workspaces). Also, I would REMOVE
 any workspace related configuration, such as `wsbind`. If you want to leverage [workspace-specific rules](https://wiki.hyprland.org/Configuring/Workspace-Rules/), you can: workspaces are always assigned 
 to the same vdesk given the same number of monitors. For instance:
  - Given two monitors:
