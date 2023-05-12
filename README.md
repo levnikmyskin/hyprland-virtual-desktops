@@ -9,7 +9,7 @@ and workspace 2 on screen 2:
  - If you switch to workspace 3, your active screen will go to workspace 3, whereas the other screen will stay on whichever workspace it is currently on.
 
 You may think of a virtual desktop, instead, as a "single" 
-workspace which extends across your screens (even though, internally, you will still have _n_ different workspaces on your _n_ monitors). If you've ever used KDE Plasma or Gnome with 
+workspace which extends across your screens (even though, internally, you will still have _n_ different workspaces on your _n_ monitors). If you've ever used KDE Plasma (or Gnome, I think) with 
 multiple screens, this plugin basically replicates that 
 functionality.  
 Taking the previous example:
@@ -34,6 +34,8 @@ This plugin exposes a few hyprctl dispatchers:
 | vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below | `vdesk 3` or `vdesk coding`|
 | prevdesk | Changes to previous virtual desktop | `none` | `prevdesk`|
 | printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see below | `printdesk` or `printdesk 2` or `printdesk coding`|
+| movetodesk vdesk(, window) | Moves the active/selected window to the specified `vdesk` | `vdesk`, optional window, see below | `movetodesk 2` or `movetodesk 2,title:kitty` |
+| movetodesksilent vdesk(, window) | same as `movetodesk`, but doesn't switch to desk | same as above | same as above |
 
 \*`printdesk` currently prints to the active Hyprland session log, thus probably not really useful. 
 
@@ -44,6 +46,9 @@ For `vdesk` names, you can use:
 If a `vdesk` with a given ID or name does not exist, it'll be created on the fly. If you give a (non configured, see [below](#configuration-values)) 
 name, it will be assigned to the next available vdesk id: the virtual-desktops 
 plugin will remember this association even if Hyprland kills the related workspaces. 
+  
+The `movetodesk` and `movetodesksilent` dispatchers work similarly to 
+Hyprland's `movetoworkspace` and `movetoworkspacesilent` dispatchers. See [Hyprland's wiki](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers). Of course, make sure to use the `vdesk` syntax above instead of Hyprland's.
 
 #### Don't mix with Hyprland native workspaces
 I wouldn't mix this with any of Hyprland native workspaces functionality. For instance, instead of using `hyprctl dispatch workspace n` use 
@@ -67,12 +72,12 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 
 | Name | type | example|
 |------|------|--------|
-| names | string, see below| `1:coding, 2:internet, 3:mail and chats`|
+| names | map[int:string], see below| `1:coding, 2:internet, 3:mail and chats`|
 | cycleworkspaces | `0` or `1`| `1`|
 
 * The `names` config option maps virtual desktop IDs to a name (you can then use this with the hyprctl [dispatcher](#hyprctl-dispatchers));
 * If `cycleworkspaces` is set to `1`, and you switch to the currently active virtual desktop, this swaps the workspaces of your two monitors (see hyprctl [swapactiveworkspaces](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers)). 
-THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^.
+THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^ (see also the `dev` branch).
 
 
 #### Example config 
@@ -96,7 +101,7 @@ HYPRLAND_HEADERS=path/to/hyprlandrepo make all
 this will compile and copy the compiled `.so` plugin in the `$HOME/.local/share/hyprload/plugins/bin` path (useful if you use [hyprload](https://github.com/Duckonaut/hyprload)).  
 You can also use `make virtual-desktops.so` to output the compiled plugin in the repo directory.
 
-Once compiled, you can tell Hyprland to load the plugin as described in the Hyprland wiki.
+Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
 
 
 ### Thanks to
