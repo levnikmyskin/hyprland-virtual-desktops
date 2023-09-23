@@ -26,7 +26,7 @@ int                        prevVDesk                     = -1;
 int                        currentVDesk                  = 1; // when plugin is launched, we assume we start at vdesk 1
 
 void                       printLog(std::string s) {
-    Debug::log(INFO, ("[virtual-desktops] " + s).c_str());
+    Debug::log(INFO, "[virtual-desktops] %s", s);
     // std::cout << "[virtual-desktops] " + s << std::endl;
 }
 
