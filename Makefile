@@ -42,6 +42,9 @@ check_env:
 $(PLUGIN_NAME).so: $(SOURCE_FILES) $(INCLUDE_FILES)
 	g++ -shared $(COMPILE_FLAGS) $(COMPILE_DEFINES) $(SOURCE_FILES) -o $(PLUGIN_NAME).so
 
+debug: $(SOURCE_FILES) $(INCLUDE_FILES)
+	g++ -DDEBUG -shared $(COMPILE_FLAGS) $(COMPILE_DEFINES) $(SOURCE_FILES) -o $(PLUGIN_NAME).so
+
 clean:
 	rm -f ./$(PLUGIN_NAME).so
 
