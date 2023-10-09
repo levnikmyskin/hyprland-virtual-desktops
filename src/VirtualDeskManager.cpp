@@ -2,7 +2,7 @@
 #include <src/Compositor.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
-    this->conf       = RememberLayoutConf::layout;
+    this->conf       = RememberLayoutConf::size;
     vdeskNamesMap[1] = "1";
     vdesksMap[1]     = std::make_shared<VirtualDesk>();
 }
@@ -158,8 +158,8 @@ void VirtualDeskManager::loadLayoutConf() {
     // Maybe in a future release :)
     if (confLoaded)
         return;
-    static auto* const PREMEMBER_LAYOUT = &HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->intValue;
-    conf                                = layoutConfFromInt(*PREMEMBER_LAYOUT);
+    static auto* const PREMEMBER_LAYOUT = &HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->strValue;
+    conf                                = layoutConfFromString(*PREMEMBER_LAYOUT);
     confLoaded                          = true;
 }
 

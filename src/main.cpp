@@ -194,7 +194,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addDispatcher(PHANDLE, PRINTLAYOUT_DISPATCH_STR, printLayoutDispatch);
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
     HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, SConfigValue{.intValue = 1});
-    HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, SConfigValue{.intValue = 1});
+    HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, SConfigValue{.strValue = REMEMBER_SIZE});
     HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, SConfigValue{.intValue = 1});
     HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, SConfigValue{.intValue = 0});
 

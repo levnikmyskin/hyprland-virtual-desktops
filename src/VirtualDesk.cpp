@@ -44,7 +44,7 @@ Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
             }
             break;
         }
-        case RememberLayoutConf::layout: {
+        case RememberLayoutConf::size: {
             int idx = 0;
             for (auto& layout : layouts) {
                 if (layout.size() == monitors.size()) {
@@ -60,7 +60,7 @@ Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
             }
             break;
         }
-        case RememberLayoutConf::none: break;
+        case RememberLayoutConf::none: layouts.clear();
     }
     layouts.push_back(generateCurrentMonitorLayout());
     m_activeLayout_idx = layouts.size() - 1;
