@@ -17,8 +17,10 @@ const std::string MOVETODESK_DISPATCH_STR       = "movetodesk";
 const std::string MOVETODESKSILENT_DISPATCH_STR = "movetodesksilent";
 const std::string RESET_VDESK_DISPATCH_STR      = "vdeskreset";
 const std::string PREVDESK_DISPATCH_STR         = "prevdesk";
+const std::string NEXTDESK_DISPATCH_STR         = "nextdesk";
 const std::string PRINTDESK_DISPATCH_STR        = "printdesk";
 const std::string PRINTLAYOUT_DISPATCH_STR      = "printlayout";
+const std::string CYCLEVDESK_DISPATCH_STR       = "cyclevdesks";
 
 enum RememberLayoutConf {
     none     = 0,
@@ -27,7 +29,7 @@ enum RememberLayoutConf {
 };
 
 RememberLayoutConf layoutConfFromInt(const int64_t);
-void               printLog(std::string s);
+void               printLog(std::string s, LogLevel level = INFO);
 
 std::string        parseMoveDispatch(std::string& arg);
 

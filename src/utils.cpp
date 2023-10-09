@@ -1,8 +1,10 @@
 #include "utils.hpp"
 
-void printLog(std::string s) {
-    // Debug::log(INFO, "[virtual-desktops] %s", s);
+void printLog(std::string s, LogLevel level) {
+#ifdef DEBUG
     std::cout << "[virtual-desktops] " + s << std::endl;
+#endif
+    Debug::log(level, "[virtual-desktops] %s", s);
 }
 
 std::string parseMoveDispatch(std::string& arg) {

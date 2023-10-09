@@ -15,7 +15,7 @@ void VirtualDeskManager::changeActiveDesk(std::string& arg, bool apply) {
     int vdeskId;
     try {
         vdeskId = std::stoi(arg);
-    } catch (std::exception const& ex) { vdeskId = getOrCreateDeskIdFromName(arg); }
+    } catch (std::exception const& ex) { vdeskId = getDeskIdFromName(arg); }
 
     changeActiveDesk(vdeskId, apply);
 }
@@ -45,6 +45,16 @@ void VirtualDeskManager::previousDesk() {
         return;
     }
     changeActiveDesk(prevDesk, true);
+}
+
+void VirtualDeskManager::nextDesk(bool cycle) {
+    int nextId = activeVdesk()->id + 1;
+    if (!cycle) {
+        changeActiveDesk(nextId, true);
+    } else {
+        nextId = vdesksMap.contains(nextId) ? nextId : 1;
+        changeActiveDesk(nextId, true);
+    }
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
@@ -99,7 +109,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg) {
     auto n_monitors = g_pCompositor->m_vMonitors.size();
     try {
         vdeskId = std::stoi(vdeskName);
-    } catch (std::exception& _) { vdeskId = getOrCreateDeskIdFromName(vdeskName); }
+    } catch (std::exception& _) { vdeskId = getDeskIdFromName(vdeskName); }
 
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
@@ -122,10 +132,10 @@ int VirtualDeskManager::moveToDesk(std::string& arg) {
     return vdeskId;
 }
 
-int VirtualDeskManager::getOrCreateDeskIdFromName(const std::string& name) {
+int VirtualDeskManager::getDeskIdFromName(const std::string& name, bool createIfNotFound) {
     int  max_key = -1;
     bool found   = false;
-    int  vdesk;
+    int  vdesk   = -1;
     for (auto const& [key, val] : vdeskNamesMap) {
         if (val == name) {
             vdesk = key;
@@ -135,7 +145,7 @@ int VirtualDeskManager::getOrCreateDeskIdFromName(const std::string& name) {
         if (key > max_key)
             max_key = key;
     }
-    if (!found) {
+    if (!found && createIfNotFound) {
         vdesk                = max_key + 1;
         vdeskNamesMap[vdesk] = name;
     }
@@ -192,6 +202,25 @@ void VirtualDeskManager::resetAllVdesks() {
     for (const auto& [_, vdesk] : vdesksMap) {
         vdesk->resetLayout();
     }
+}
+
+void VirtualDeskManager::resetVdesk(const std::string& arg) {
+    int vdeskId;
+    try {
+        vdeskId = std::stoi(arg);
+    } catch (std::exception const& ex) { vdeskId = getDeskIdFromName(arg, false); }
+
+    if (vdeskId == -1) {
+        printLog("Reset vdesk: " + arg + " not found", LogLevel::WARN);
+        return;
+    }
+
+    if (!vdesksMap.contains(vdeskId)) {
+        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", LogLevel::ERR);
+        return;
+    }
+
+    vdesksMap[vdeskId]->resetLayout();
 }
 
 void VirtualDeskManager::invalidateAllLayouts() {

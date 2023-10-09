@@ -17,17 +17,19 @@ class VirtualDeskManager {
     void                                                  changeActiveDesk(std::string&, bool);
     void                                                  changeActiveDesk(int, bool);
     void                                                  previousDesk();
+    void                                                  nextDesk(bool cycle);
     void                                                  applyCurrentVDesk();
     int                                                   moveToDesk(std::string&);
     void                                                  loadLayoutConf();
     void                                                  invalidateAllLayouts();
     void                                                  resetAllVdesks();
+    void                                                  resetVdesk(const std::string& arg);
     void                                                  deleteInvalidMonitorsOnAllVdesks(CMonitor*);
 
   private:
     int       m_activeDeskKey = 1;
     bool      confLoaded      = false;
     void      cycleWorkspaces();
-    int       getOrCreateDeskIdFromName(const std::string& name);
+    int       getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
     CMonitor* getCurrentMonitor();
 };
