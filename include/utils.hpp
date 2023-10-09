@@ -22,13 +22,18 @@ const std::string PRINTDESK_DISPATCH_STR        = "printdesk";
 const std::string PRINTLAYOUT_DISPATCH_STR      = "printlayout";
 const std::string CYCLEVDESK_DISPATCH_STR       = "cyclevdesks";
 
+const std::string REMEMBER_NONE     = "none";
+const std::string REMEMBER_SIZE     = "size";
+const std::string REMEMBER_MONITORS = "monitors";
+
 enum RememberLayoutConf {
     none     = 0,
-    layout   = 1,
+    size     = 1,
     monitors = 2
 };
 
 RememberLayoutConf layoutConfFromInt(const int64_t);
+RememberLayoutConf layoutConfFromString(const std::string& conf);
 void               printLog(std::string s, LogLevel level = INFO);
 
 std::string        parseMoveDispatch(std::string& arg);
