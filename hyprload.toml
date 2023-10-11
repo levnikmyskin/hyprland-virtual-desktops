@@ -1,6 +1,6 @@
 [virtual-desktops]
 description = "Virtual desktops"
-version = "2.0b"
+version = "2.0.1b"
 author = "LevMyskin"
 
 [virtual-desktops.build]

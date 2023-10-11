@@ -154,7 +154,7 @@ void onMonitorRemoved(void*, std::any val) {
 
 void onMonitorAdded(void*, std::any val) {
     manager->invalidateAllLayouts();
-    manager->applyCurrentVDesk();
+    needsReloading = true;
 }
 
 void onTick(void*, std::any) {
@@ -206,5 +206,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0b"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.1b"};
 }
