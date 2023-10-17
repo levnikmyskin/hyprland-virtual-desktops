@@ -1,6 +1,28 @@
 # Virtual desktops for Hyprland ![hyprico](.github/hyprland.ico)
 `virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.  
 
+## Table of contents
+- [Virtual desktops for Hyprland ](#virtual-desktops-for-hyprland-)
+  - [Table of contents](#table-of-contents)
+  - [What is this exactly?](#what-is-this-exactly)
+  - [How does this work?](#how-does-this-work)
+    - [It's just workspaces, really](#its-just-workspaces-really)
+    - [Hyprctl dispatchers](#hyprctl-dispatchers)
+      - [Mix with Hyprland native workspaces](#mix-with-hyprland-native-workspaces)
+    - [Configuration values](#configuration-values)
+      - [Example config](#example-config)
+  - [Layouts](#layouts)
+      - [Example](#example)
+    - [Layouts are cached and restored if you disconnect/reconnect monitors](#layouts-are-cached-and-restored-if-you-disconnectreconnect-monitors)
+      - [Example](#example-1)
+    - [Choosing how to remember, or choosing to forget](#choosing-how-to-remember-or-choosing-to-forget)
+      - [Example](#example-2)
+  - [Install](#install)
+  - [Help, Hyprland is being weird!](#help-hyprland-is-being-weird)
+    - [It's actually the plugin 😱](#its-actually-the-plugin-)
+    - [Thanks to](#thanks-to)
+
+
 ## What is this exactly?
 
 In Hyprland, each screen has its own set of workspaces. For instance, say you have two monitors, with workspace 1 on screen 1 
@@ -156,6 +178,13 @@ You can also use `make virtual-desktops.so` to output the compiled plugin in the
 
 Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
 
+## Help, Hyprland is being weird!
+I've noticed that, sometimes, when disconnecting or reconnecting monitors, there might be weird artifacts or similar. Try running:  
+`hyprctl reload`  
+  
+### It's actually the plugin 😱
+If instead you're seeing weird behaviour with the plugin itself, remember you can always run:  
+`hyprtl dispatch vdeskreset`
 
 ### Thanks to
 [split-workspaces](https://github.com/Duckonaut/split-monitor-workspaces/), from which I borrowed the Makefile, 
