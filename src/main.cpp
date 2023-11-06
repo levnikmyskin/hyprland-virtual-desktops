@@ -129,7 +129,7 @@ void resetVDeskDispatch(std::string arg) {
     manager->applyCurrentVDesk();
 }
 
-void onWorkspaceChange(void*, std::any val) {
+void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     CWorkspace* workspace   = std::any_cast<CWorkspace*>(val);
     int         workspaceID = std::any_cast<CWorkspace*>(val)->m_iID;
 
@@ -142,7 +142,7 @@ void onWorkspaceChange(void*, std::any val) {
         printLog("workspace changed: workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(workspace->m_iMonitorID));
 }
 
-void onMonitorRemoved(void*, std::any val) {
+void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
     CMonitor* monitor = std::any_cast<CMonitor*>(val);
     manager->invalidateAllLayouts();
     manager->deleteInvalidMonitorsOnAllVdesks(monitor);
@@ -152,19 +152,19 @@ void onMonitorRemoved(void*, std::any val) {
     needsReloading = true;
 }
 
-void onMonitorAdded(void*, std::any val) {
+void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
     manager->invalidateAllLayouts();
     needsReloading = true;
 }
 
-void onTick(void*, std::any) {
+void onTick(void*, SCallbackInfo&, std::any) {
     if (needsReloading) {
         manager->applyCurrentVDesk();
         needsReloading = false;
     }
 }
 
-void onConfigReloaded(void*, std::any val) {
+void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
     static auto* const PNOTIFYINIT = &HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->intValue;
     if (*PNOTIFYINIT && !notifiedInit) {
         HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CColor{0.f, 1.f, 1.f, 1.f}, 5000);
