@@ -6,7 +6,7 @@ PLUGIN_NAME=virtual-desktops
 
 SOURCE_FILES=$(wildcard src/*.cpp)
 
-COMPILE_FLAGS=-g -fPIC --no-gnu-unique -std=c++23
+COMPILE_FLAGS=-g -fPIC --no-gnu-unique -std=c++23 -Wall
 COMPILE_FLAGS+=-I "/usr/include/pixman-1"
 COMPILE_FLAGS+=-I "/usr/include/libdrm"
 COMPILE_FLAGS+=-I "${HYPRLAND_HEADERS}"

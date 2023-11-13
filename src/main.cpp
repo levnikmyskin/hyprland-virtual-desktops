@@ -20,7 +20,7 @@ static HOOK_CALLBACK_FN*            onWorkspaceChangeHook = nullptr;
 static HOOK_CALLBACK_FN*            onMonitorRemovedHook  = nullptr;
 static HOOK_CALLBACK_FN*            onMonitorAddedHook    = nullptr;
 static HOOK_CALLBACK_FN*            onConfigReloadedHook  = nullptr;
-static HOOK_CALLBACK_FN*            onTickHook            = nullptr;
+static HOOK_CALLBACK_FN*            onPreRenderHook       = nullptr;
 std::unique_ptr<VirtualDeskManager> manager               = std::make_unique<VirtualDeskManager>();
 bool                                notifiedInit          = false;
 bool                                needsReloading        = false;
@@ -157,7 +157,7 @@ void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
     needsReloading = true;
 }
 
-void onTick(void*, SCallbackInfo&, std::any) {
+void onPreRender(void*, SCallbackInfo&, std::any) {
     if (needsReloading) {
         manager->applyCurrentVDesk();
         needsReloading = false;
@@ -202,7 +202,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     onMonitorRemovedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", onMonitorRemoved);
     onMonitorAddedHook    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
     onConfigReloadedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
-    onTickHook            = HyprlandAPI::registerCallbackDynamic(PHANDLE, "tick", onTick);
+    onPreRenderHook       = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preRender", onPreRender);
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
