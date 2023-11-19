@@ -17,15 +17,16 @@
 #include <vector>
 
 static HOOK_CALLBACK_FN*            onWorkspaceChangeHook = nullptr;
-static HOOK_CALLBACK_FN*            onMonitorRemovedHook  = nullptr;
 static HOOK_CALLBACK_FN*            onMonitorAddedHook    = nullptr;
 static HOOK_CALLBACK_FN*            onConfigReloadedHook  = nullptr;
-static HOOK_CALLBACK_FN*            onPreRenderHook       = nullptr;
 std::unique_ptr<VirtualDeskManager> manager               = std::make_unique<VirtualDeskManager>();
 bool                                notifiedInit          = false;
 bool                                needsReloading        = false;
 
-void                                parseNamesConf(std::string& conf) {
+inline CFunctionHook*               g_pMonitorDestroy = nullptr;
+typedef void (*origMonitorDestroy)(void*, void*);
+
+void parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -142,26 +143,23 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
         printLog("workspace changed: workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(workspace->m_iMonitorID));
 }
 
-void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
-    CMonitor* monitor = std::any_cast<CMonitor*>(val);
+void hookMonitorDestroy(void* owner, void* data) {
+    (*(origMonitorDestroy)g_pMonitorDestroy->m_pOriginal)(owner, data);
+    const auto OUTPUT = (wlr_output*)data;
     manager->invalidateAllLayouts();
-    manager->deleteInvalidMonitorsOnAllVdesks(monitor);
-    // Doing applyCurrentVDesk() here it's not possible.
-    // It creates a lot of problems with how Hyprland manages monitor
-    // disconnections. The best thing is just to handle this on the next tick
-    needsReloading = true;
+    manager->deleteInvalidMonitorsOnAllVdesks(OUTPUT);
+    manager->applyCurrentVDesk();
 }
 
 void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
     manager->invalidateAllLayouts();
-    needsReloading = true;
+    manager->applyCurrentVDesk();
 }
 
-void onPreRender(void*, SCallbackInfo&, std::any) {
-    if (needsReloading) {
-        manager->applyCurrentVDesk();
-        needsReloading = false;
-    }
+void onMonitorLayoutChanged(void*, SCallbackInfo&, std::any) {
+    manager->invalidateAllLayouts();
+    manager->deleteInvalidMonitorsOnAllVdesks();
+    manager->applyCurrentVDesk();
 }
 
 void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
@@ -198,11 +196,13 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, SConfigValue{.intValue = 1});
     HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, SConfigValue{.intValue = 0});
 
-    onWorkspaceChangeHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
-    onMonitorRemovedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", onMonitorRemoved);
-    onMonitorAddedHook    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
-    onConfigReloadedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
-    onPreRenderHook       = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preRender", onPreRender);
+    onWorkspaceChangeHook     = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
+    onMonitorAddedHook        = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
+    onConfigReloadedHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
+    static const auto METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "listener_monitorDestroy");
+    g_pMonitorDestroy         = HyprlandAPI::createFunctionHook(PHANDLE, METHODS[0].address, (void*)&hookMonitorDestroy);
+
+    g_pMonitorDestroy->hook();
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
