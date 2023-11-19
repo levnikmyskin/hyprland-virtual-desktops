@@ -17,7 +17,6 @@
 #include <vector>
 
 static HOOK_CALLBACK_FN*            onWorkspaceChangeHook = nullptr;
-static HOOK_CALLBACK_FN*            onMonitorAddedHook    = nullptr;
 static HOOK_CALLBACK_FN*            onConfigReloadedHook  = nullptr;
 std::unique_ptr<VirtualDeskManager> manager               = std::make_unique<VirtualDeskManager>();
 bool                                notifiedInit          = false;
@@ -25,6 +24,9 @@ bool                                needsReloading        = false;
 
 inline CFunctionHook*               g_pMonitorDestroy = nullptr;
 typedef void (*origMonitorDestroy)(void*, void*);
+
+inline CFunctionHook* g_pMonitorAdded = nullptr;
+typedef void (*origMonitorAdded)(void*, void*);
 
 void parseNamesConf(std::string& conf) {
     size_t      pos;
@@ -151,7 +153,8 @@ void hookMonitorDestroy(void* owner, void* data) {
     manager->applyCurrentVDesk();
 }
 
-void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
+void hookMonitorAdded(void* owner, void* data) {
+    (*(origMonitorAdded)g_pMonitorAdded->m_pOriginal)(owner, data);
     manager->invalidateAllLayouts();
     manager->applyCurrentVDesk();
 }
@@ -196,15 +199,18 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, SConfigValue{.intValue = 1});
     HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, SConfigValue{.intValue = 0});
 
-    onWorkspaceChangeHook     = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
-    onMonitorAddedHook        = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
-    onConfigReloadedHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
-    static const auto METHODS = HyprlandAPI::findFunctionsByName(PHANDLE, "listener_monitorDestroy");
-    g_pMonitorDestroy         = HyprlandAPI::createFunctionHook(PHANDLE, METHODS[0].address, (void*)&hookMonitorDestroy);
+    onWorkspaceChangeHook             = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
+    onConfigReloadedHook              = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
+    static const auto METHODS_DESTROY = HyprlandAPI::findFunctionsByName(PHANDLE, "listener_monitorDestroy");
+    static const auto METHODS_ADDED   = HyprlandAPI::findFunctionsByName(PHANDLE, "listener_newOutput");
+
+    g_pMonitorDestroy = HyprlandAPI::createFunctionHook(PHANDLE, METHODS_DESTROY[0].address, (void*)&hookMonitorDestroy);
+    g_pMonitorAdded   = HyprlandAPI::createFunctionHook(PHANDLE, METHODS_ADDED[0].address, (void*)&hookMonitorAdded);
 
     g_pMonitorDestroy->hook();
+    g_pMonitorAdded->hook();
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.1b"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.1"};
 }
