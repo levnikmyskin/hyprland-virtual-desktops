@@ -24,7 +24,9 @@ class VirtualDeskManager {
     void                                                  invalidateAllLayouts();
     void                                                  resetAllVdesks();
     void                                                  resetVdesk(const std::string& arg);
-    void                                                  deleteInvalidMonitorsOnAllVdesks(CMonitor*);
+    void                                                  deleteInvalidMonitorsOnAllVdesks(const CMonitor*);
+    void                                                  deleteInvalidMonitorsOnAllVdesks(const wlr_output*);
+    void                                                  deleteInvalidMonitorsOnAllVdesks();
 
   private:
     int       m_activeDeskKey = 1;

@@ -105,8 +105,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg) {
     }
 
     int  vdeskId;
-    auto vdeskName  = parseMoveDispatch(arg);
-    auto n_monitors = g_pCompositor->m_vMonitors.size();
+    auto vdeskName = parseMoveDispatch(arg);
     try {
         vdeskId = std::stoi(vdeskName);
     } catch (std::exception& _) { vdeskId = getDeskIdFromName(vdeskName); }
@@ -190,12 +189,24 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(CMonitor* monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const wlr_output* monitor) {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf);
         vdesk->deleteInvalidMonitor(monitor);
     }
+}
+
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks() {
+    for (const auto& [_, vdesk] : vdesksMap) {
+        // recompute active layout
+        vdesk->activeLayout(conf);
+        vdesk->deleteInvalidMonitor();
+    }
+}
+
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CMonitor* monitor) {
+    deleteInvalidMonitorsOnAllVdesks(monitor->output);
 }
 
 void VirtualDeskManager::resetAllVdesks() {
