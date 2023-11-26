@@ -1,6 +1,7 @@
 
 #pragma once
 
+#ifndef VDESK_MANAGER_H
 #define VDESK_MANAGER_H
 
 #include "VirtualDesk.hpp"
@@ -25,7 +26,6 @@ class VirtualDeskManager {
     void                                                  resetAllVdesks();
     void                                                  resetVdesk(const std::string& arg);
     void                                                  deleteInvalidMonitorsOnAllVdesks(const CMonitor*);
-    void                                                  deleteInvalidMonitorsOnAllVdesks(const wlr_output*);
     void                                                  deleteInvalidMonitorsOnAllVdesks();
 
   private:
@@ -35,3 +35,4 @@ class VirtualDeskManager {
     int       getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
     CMonitor* getCurrentMonitor();
 };
+#endif

@@ -1,8 +1,8 @@
 #include "VirtualDesk.hpp"
-#include <src/Compositor.hpp>
 #include <numeric>
 #include <algorithm>
 #include <unordered_set>
+#include <format>
 
 VirtualDesk::VirtualDesk(int id, std::string name) {
     this->id   = id;
@@ -11,17 +11,17 @@ VirtualDesk::VirtualDesk(int id, std::string name) {
     m_activeLayout_idx = 0;
 }
 
-const Layout& VirtualDesk::activeLayout(const RememberLayoutConf& conf) {
+const Layout& VirtualDesk::activeLayout(const RememberLayoutConf& conf, const CMonitor* exclude) {
     if (!activeIsValid) {
         activeIsValid = true;
-        searchActiveLayout(conf);
+        searchActiveLayout(conf, exclude);
     }
     return layouts[m_activeLayout_idx];
 }
 
-Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
+Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, const CMonitor* exclude) {
 
-    auto monitors = currentlyEnabledMonitors();
+    auto monitors = currentlyEnabledMonitors(exclude);
     switch (conf) {
         case RememberLayoutConf::monitors: {
             // Compute hash set of descriptions
@@ -30,7 +30,7 @@ Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
             for (auto& layout : layouts) {
                 std::unordered_set<std::string> set;
                 for (const auto& [k, v] : layout) {
-                    set.insert(k);
+                    set.insert(monitorDesc(k));
                 }
 
                 std::unordered_set<std::string> intersection;
@@ -51,8 +51,9 @@ Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
                 if (layout.size() == monitors.size()) {
                     if (isVerbose())
                         printLog("Found layout with size " + std::to_string(layout.size()));
+
                     // check layout is valid and substitute invalid monitors
-                    checkAndAdaptLayout(&layout);
+                    checkAndAdaptLayout(&layout, exclude);
 
                     m_activeLayout_idx = idx;
                     return layouts[idx];
@@ -69,7 +70,7 @@ Layout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf) {
 }
 
 void VirtualDesk::changeWorkspaceOnMonitor(int workspaceId, CMonitor* monitor) {
-    layouts[m_activeLayout_idx][monitorDesc(monitor->output)] = workspaceId;
+    layouts[m_activeLayout_idx][monitor] = workspaceId;
 }
 
 void VirtualDesk::invalidateActiveLayout() {
@@ -80,35 +81,38 @@ void VirtualDesk::resetLayout() {
     layouts[m_activeLayout_idx] = generateCurrentMonitorLayout();
 }
 
-void VirtualDesk::deleteInvalidMonitorOnAllLayouts(const wlr_output* monitor) {
+void VirtualDesk::deleteInvalidMonitorOnAllLayouts(const CMonitor* monitor) {
     for (auto layout : layouts) {
         deleteInvalidMonitor(monitor);
     }
 }
 
-void VirtualDesk::deleteInvalidMonitor(const wlr_output* output) {
+CMonitor* VirtualDesk::deleteInvalidMonitor(const CMonitor* monitor) {
     Layout layout_copy(layouts[m_activeLayout_idx]);
-    for (auto const& [desc, workspaceId] : layout_copy) {
-        if (monitorDesc(output) == desc) {
-            auto newMonitor                                              = firstAvailableMonitor(currentlyEnabledMonitors());
-            layouts[m_activeLayout_idx][monitorDesc(newMonitor->output)] = workspaceId;
-            layouts[m_activeLayout_idx].erase(desc);
+    for (auto const& [mon, workspaceId] : layout_copy) {
+        if (mon == monitor) {
+            auto newMonitor = firstAvailableMonitor(currentlyEnabledMonitors(monitor));
+            if (newMonitor)
+                layouts[m_activeLayout_idx][newMonitor.get()] = workspaceId;
+            layouts[m_activeLayout_idx].erase(monitor);
+            return newMonitor.get();
         }
     }
+    return nullptr;
 }
 
-void VirtualDesk::deleteInvalidMonitor() {
-    Layout                          layout_copy(layouts[m_activeLayout_idx]);
-    auto                            enabledMonitors = currentlyEnabledMonitors();
-    std::unordered_set<std::string> enabledMonitorsDesc;
+void VirtualDesk::deleteInvalidMonitorsOnActiveLayout() {
+    Layout                              layout_copy(layouts[m_activeLayout_idx]);
+    auto                                enabledMonitors = currentlyEnabledMonitors();
+    std::unordered_set<const CMonitor*> enabledMonitors_set;
     for (auto mon : enabledMonitors) {
-        enabledMonitorsDesc.insert(monitorDesc(mon->output));
+        enabledMonitors_set.insert(mon.get());
     }
-    for (auto const& [desc, workspaceId] : layout_copy) {
-        if (enabledMonitorsDesc.count(desc) <= 0) {
-            auto newMonitor                                              = firstAvailableMonitor(enabledMonitors);
-            layouts[m_activeLayout_idx][monitorDesc(newMonitor->output)] = workspaceId;
-            layouts[m_activeLayout_idx].erase(desc);
+    for (auto [mon, workspaceId] : layout_copy) {
+        if (enabledMonitors_set.count(mon) <= 0) {
+            auto newMonitor                               = firstAvailableMonitor(enabledMonitors);
+            layouts[m_activeLayout_idx][newMonitor.get()] = workspaceId;
+            layouts[m_activeLayout_idx].erase(newMonitor.get());
         }
     }
 }
@@ -126,29 +130,31 @@ std::shared_ptr<CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<s
     return newMonitor;
 }
 
-void VirtualDesk::checkAndAdaptLayout(Layout* layout) {
-    for (auto [desc, wid] : Layout(*layout)) {
-        auto fromDesc = g_pCompositor->getMonitorFromDesc(desc);
-        if (!fromDesc || !fromDesc->m_bEnabled) {
+void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CMonitor* exclude) {
+    auto enabledMons = currentlyEnabledMonitors(exclude);
+    if (enabledMons.size() == 0)
+        return;
+    for (auto [mon, wid] : Layout(*layout)) {
+        if (!mon || !mon->m_bEnabled || mon == exclude) {
             // Let's try to find a "new" monitor which wasn't in
             // the layout before. If we don't find it, not much we can
             // do except for removing this monitor
-            for (const auto& mon : currentlyEnabledMonitors()) {
-                std::string monDesc = monitorDesc(mon->output);
-                if (!layout->contains(monDesc)) {
-                    (*layout)[monDesc] = wid;
-                    (*layout).erase(desc);
+            printLog("adapting layout");
+            for (const auto& enabledMon : enabledMons) {
+                if (!layout->contains(enabledMon.get())) {
+                    (*layout)[enabledMon.get()] = wid;
+                    (*layout).erase(mon);
                     return;
                 }
             }
-            (*layout).erase(desc);
+            (*layout).erase(mon);
         }
     }
 }
 
 std::unordered_set<std::string> VirtualDesk::setFromMonitors(const std::vector<std::shared_ptr<CMonitor>>& monitors) {
     std::unordered_set<std::string> set;
-    std::transform(monitors.begin(), monitors.end(), std::inserter(set, set.begin()), [](auto mon) { return monitorDesc(mon->output); });
+    std::transform(monitors.begin(), monitors.end(), std::inserter(set, set.begin()), [](auto mon) { return monitorDesc(mon.get()); });
     return set;
 }
 
@@ -161,18 +167,14 @@ Layout VirtualDesk::generateCurrentMonitorLayout() {
     auto vdeskFirstWorkspace = (this->id - 1) * monitors.size() + 1;
     int  j                   = 0;
     for (int i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + monitors.size(); i++) {
-        layout[monitorDesc(monitors[j]->output)] = i;
+        layout[monitors[j].get()] = i;
         j++;
     }
     return layout;
 }
 
-std::vector<std::shared_ptr<CMonitor>> VirtualDesk::currentlyEnabledMonitors() {
-    std::vector<std::shared_ptr<CMonitor>> monitors;
-    std::copy_if(g_pCompositor->m_vMonitors.begin(), g_pCompositor->m_vMonitors.end(), std::back_inserter(monitors), [](auto mon) { return mon->m_bEnabled; });
-    return monitors;
-}
-
-std::string VirtualDesk::monitorDesc(const wlr_output* output) {
-    return output->description ? output->description : "";
+std::string VirtualDesk::monitorDesc(const CMonitor* monitor) {
+    if (!monitor->output)
+        return monitor->szName;
+    return monitor->output->description ? monitor->output->description : monitor->szName;
 }

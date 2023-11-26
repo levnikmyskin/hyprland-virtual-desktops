@@ -1,11 +1,13 @@
 #pragma once
 
+#ifndef UTILS_H
 #define UTILS_H
 
 #include "src/debug/Log.hpp"
 #include "globals.hpp"
 #include "src/config/ConfigManager.hpp"
 #include <string>
+#include "src/Compositor.hpp"
 
 const std::string VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
 const std::string CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";
@@ -32,10 +34,12 @@ enum RememberLayoutConf {
     monitors = 2
 };
 
-RememberLayoutConf layoutConfFromInt(const int64_t);
-RememberLayoutConf layoutConfFromString(const std::string& conf);
-void               printLog(std::string s, LogLevel level = INFO);
+RememberLayoutConf                     layoutConfFromInt(const int64_t);
+RememberLayoutConf                     layoutConfFromString(const std::string& conf);
+void                                   printLog(std::string s, LogLevel level = INFO);
 
-std::string        parseMoveDispatch(std::string& arg);
+std::string                            parseMoveDispatch(std::string& arg);
+std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
 
-bool               isVerbose();
+bool                                   isVerbose();
+#endif
