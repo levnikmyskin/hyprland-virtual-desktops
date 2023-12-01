@@ -1,10 +1,10 @@
 #include "utils.hpp"
 
 void printLog(std::string s, LogLevel level) {
-#ifdef DEBUG
-    std::cout << "[virtual-desktops] " + s << std::endl;
-#endif
-    Debug::log(level, "[virtual-desktops] %s", s);
+    // #ifdef DEBUG
+    //     std::cout << "[virtual-desktops] " + s << std::endl;
+    // #endif
+    Debug::log(level, "[virtual-desktops] {}", s);
 }
 
 std::string parseMoveDispatch(std::string& arg) {
@@ -40,4 +40,24 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
 bool isVerbose() {
     static auto* const PVERBOSELOGS = &HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->intValue;
     return *PVERBOSELOGS;
+}
+
+std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude) {
+    std::vector<std::shared_ptr<CMonitor>> monitors;
+    std::copy_if(g_pCompositor->m_vMonitors.begin(), g_pCompositor->m_vMonitors.end(), std::back_inserter(monitors), [&](auto mon) {
+        if (g_pCompositor->m_pUnsafeOutput && g_pCompositor->m_pUnsafeOutput->szName == mon->szName)
+            return false;
+
+        if (!mon->output)
+            return false;
+
+        if (mon->output->name == std::string("HEADLESS-1"))
+            return false;
+
+        if (mon.get() == exclude)
+            return false;
+
+        return mon->m_bEnabled;
+    });
+    return monitors;
 }

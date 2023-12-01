@@ -1,5 +1,6 @@
 #include "VirtualDeskManager.hpp"
 #include <src/Compositor.hpp>
+#include <format>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf       = RememberLayoutConf::size;
@@ -58,20 +59,29 @@ void VirtualDeskManager::nextDesk(bool cycle) {
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
-    if (isVerbose())
-        printLog("applying vdesk" + activeVdesk()->name);
-    auto currentMonitor = getCurrentMonitor();
-    if (!currentMonitor) {
+    if (currentlyEnabledMonitors().size() == 0) {
         printLog("There are no monitors!");
         return;
     }
+    if (isVerbose())
+        printLog("applying vdesk" + activeVdesk()->name);
+    auto currentMonitor = getCurrentMonitor();
+    // if (!currentMonitor) {
+    //     printLog("There are no monitors!");
+    //     return;
+    // }
     auto        layout = activeVdesk()->activeLayout(conf);
     CWorkspace* focusedWorkspace;
-    for (auto const& [monitorDesc, workspaceId] : layout) {
-        CMonitor* mon = g_pCompositor->getMonitorFromDesc(monitorDesc);
-        if (!mon) {
-            printLog("There is no monitor with description " + monitorDesc);
-            continue;
+    for (auto [lmon, workspaceId] : layout) {
+        CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
+        if (!lmon || !lmon->m_bEnabled) {
+            printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
+            mon = activeVdesk()->deleteInvalidMonitor(lmon);
+            // Big F, we can't do much here
+            if (!mon) {
+                printLog("There is no enabled monitor at all. I give up :)");
+                return;
+            }
         }
         CWorkspace* workspace = g_pCompositor->getWorkspaceByID(workspaceId);
         if (!workspace) {
@@ -105,8 +115,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg) {
     }
 
     int  vdeskId;
-    auto vdeskName  = parseMoveDispatch(arg);
-    auto n_monitors = g_pCompositor->m_vMonitors.size();
+    auto vdeskName = parseMoveDispatch(arg);
     try {
         vdeskId = std::stoi(vdeskName);
     } catch (std::exception& _) { vdeskId = getDeskIdFromName(vdeskName); }
@@ -190,11 +199,21 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(CMonitor* monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CMonitor* monitor) {
+    for (const auto& [_, vdesk] : vdesksMap) {
+        // recompute active layout
+        vdesk->activeLayout(conf, monitor);
+        if (monitor)
+            printLog(std::format("Deleting monitor with exclude {}", monitor->szName));
+        vdesk->deleteInvalidMonitor(monitor);
+    }
+}
+
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks() {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf);
-        vdesk->deleteInvalidMonitor(monitor);
+        vdesk->deleteInvalidMonitorsOnActiveLayout();
     }
 }
 

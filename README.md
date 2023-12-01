@@ -20,7 +20,7 @@
   - [Install](#install)
   - [Help, Hyprland is being weird!](#help-hyprland-is-being-weird)
     - [It's actually the plugin 😱](#its-actually-the-plugin-)
-    - [Thanks to](#thanks-to)
+  - [Thanks to](#thanks-to)
 
 
 ## What is this exactly?
@@ -186,6 +186,6 @@ I've noticed that, sometimes, when disconnecting or reconnecting monitors, there
 If instead you're seeing weird behaviour with the plugin itself, remember you can always run:  
 `hyprtl dispatch vdeskreset`
 
-### Thanks to
+## Thanks to
 [split-workspaces](https://github.com/Duckonaut/split-monitor-workspaces/), from which I borrowed the Makefile, 
 and the general idea of how to write Hyprland plugins.
