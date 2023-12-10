@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <src/helpers/Monitor.hpp>
+#include <hyprland/helpers/Monitor.hpp>
 #include "globals.hpp"
 #include "utils.hpp"
-#include <src/Compositor.hpp>
+#include <hyprland/Compositor.hpp>
 
 typedef std::unordered_map<int, int>             WorkspaceMap;
 typedef std::unordered_map<const CMonitor*, int> Layout;

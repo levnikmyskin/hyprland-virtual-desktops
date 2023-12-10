@@ -3,11 +3,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "src/debug/Log.hpp"
+#include <hyprland/debug/Log.hpp>
 #include "globals.hpp"
-#include "src/config/ConfigManager.hpp"
+#include <hyprland/config/ConfigManager.hpp>
 #include <string>
-#include "src/Compositor.hpp"
+#include <hyprland/Compositor.hpp>
 
 const std::string VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
 const std::string CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";
