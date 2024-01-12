@@ -1,3 +1,5 @@
+#define WLR_USE_UNSTABLE
+
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/helpers/Color.hpp>
