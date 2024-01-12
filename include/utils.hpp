@@ -1,5 +1,5 @@
 #pragma once
-
+#define WLR_USE_UNSTABLE
 #ifndef UTILS_H
 #define UTILS_H
 
