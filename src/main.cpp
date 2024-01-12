@@ -1,10 +1,10 @@
-#include <hyprland/Compositor.hpp>
-#include <hyprland/config/ConfigManager.hpp>
-#include <hyprland/helpers/Color.hpp>
-#include <hyprland/helpers/MiscFunctions.hpp>
-#include <hyprland/helpers/Workspace.hpp>
-#include <hyprland/debug/Log.hpp>
-#include <hyprland/events/Events.hpp>
+#include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/helpers/Color.hpp>
+#include <hyprland/src/helpers/MiscFunctions.hpp>
+#include <hyprland/src/helpers/Workspace.hpp>
+#include <hyprland/src/debug/Log.hpp>
+#include <hyprland/src/events/Events.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
