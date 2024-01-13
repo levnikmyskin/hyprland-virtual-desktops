@@ -226,5 +226,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.1"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.2"};
 }
