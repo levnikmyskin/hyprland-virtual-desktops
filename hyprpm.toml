@@ -1,0 +1,16 @@
+[repository]
+name = "virtual-desktops"
+authors = ["LevMyskin"]
+commit_pins = [
+    "03ebbe18ed8517ee22591eac82cd54322f42cb7d",
+]
+
+
+[virtual-desktops]
+description = "Virtual desktops"
+authors = ["LevMyskin"]
+output = "virtual-desktops.so"
+build = [
+    "make all"
+]
+
