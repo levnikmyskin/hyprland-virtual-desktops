@@ -8,6 +8,7 @@ SOURCE_FILES=$(wildcard src/*.cpp)
 
 COMPILE_FLAGS=-shared -g -fPIC --no-gnu-unique -std=c++23 -Wall
 COMPILE_FLAGS+=-Iinclude
+COMPILE_FLAGS+=-DWLR_USE_UNSTABLE
 INCLUDES = `pkg-config --cflags pixman-1 libdrm hyprland` 
 
 all: $(PLUGIN_NAME).so
