@@ -1,13 +1,13 @@
 #pragma once
-
+#define WLR_USE_UNSTABLE
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <hyprland/debug/Log.hpp>
+#include <hyprland/src/debug/Log.hpp>
 #include "globals.hpp"
-#include <hyprland/config/ConfigManager.hpp>
+#include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
-#include <hyprland/Compositor.hpp>
+#include <hyprland/src/Compositor.hpp>
 
 const std::string VIRTUALDESK_NAMES_CONF        = "plugin:virtual-desktops:names";
 const std::string CYCLEWORKSPACES_CONF          = "plugin:virtual-desktops:cycleworkspaces";

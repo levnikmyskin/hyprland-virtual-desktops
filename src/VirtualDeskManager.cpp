@@ -1,5 +1,5 @@
 #include "VirtualDeskManager.hpp"
-#include <src/Compositor.hpp>
+#include <hyprland/src/Compositor.hpp>
 #include <format>
 
 VirtualDeskManager::VirtualDeskManager() {

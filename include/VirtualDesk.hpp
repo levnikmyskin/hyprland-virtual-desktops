@@ -1,5 +1,7 @@
 #pragma once
 
+#define WLR_USE_UNSTABLE
+
 #ifndef VDESK_H
 #define VDESK_H
 
@@ -7,10 +9,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <hyprland/helpers/Monitor.hpp>
+#include <hyprland/src/helpers/Monitor.hpp>
 #include "globals.hpp"
 #include "utils.hpp"
-#include <hyprland/Compositor.hpp>
+#include <hyprland/src/Compositor.hpp>
 
 typedef std::unordered_map<int, int>             WorkspaceMap;
 typedef std::unordered_map<const CMonitor*, int> Layout;
