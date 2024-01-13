@@ -1,4 +1,3 @@
-
 #pragma once
 
 #ifndef VDESK_MANAGER_H

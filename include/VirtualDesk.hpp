@@ -1,7 +1,5 @@
 #pragma once
 
-#define WLR_USE_UNSTABLE
-
 #ifndef VDESK_H
 #define VDESK_H
 
