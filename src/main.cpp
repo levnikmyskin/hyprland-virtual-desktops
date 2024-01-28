@@ -65,8 +65,12 @@ void virtualDeskDispatch(std::string arg) {
     manager->changeActiveDesk(arg, true);
 }
 
-void goPreviousVDeskDispatch(std::string) {
-    manager->previousDesk();
+void goLastVDeskDispatch(std::string) {
+    manager->lastVisitedDesk();
+}
+
+void goPrevDeskDispatch(std::string) {
+    manager->prevDesk();
 }
 
 void goNextVDeskDispatch(std::string) {
@@ -204,7 +208,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
     HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goPreviousVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);

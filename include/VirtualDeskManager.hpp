@@ -16,7 +16,8 @@ class VirtualDeskManager {
     const std::shared_ptr<VirtualDesk>&                   activeVdesk();
     void                                                  changeActiveDesk(std::string&, bool);
     void                                                  changeActiveDesk(int, bool);
-    void                                                  previousDesk();
+    void                                                  lastVisitedDesk();
+    void                                                  prevDesk();
     void                                                  nextDesk(bool cycle);
     void                                                  applyCurrentVDesk();
     int                                                   moveToDesk(std::string&);

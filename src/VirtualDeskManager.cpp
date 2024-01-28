@@ -1,6 +1,7 @@
 #include "VirtualDeskManager.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
+#include <ranges>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf       = RememberLayoutConf::size;
@@ -40,22 +41,29 @@ void VirtualDeskManager::changeActiveDesk(int vdeskId, bool apply) {
         applyCurrentVDesk();
 }
 
-void VirtualDeskManager::previousDesk() {
+void VirtualDeskManager::lastVisitedDesk() {
     if (lastDesk == -1) {
-        printLog("There's no previous desk");
+        printLog("There's no last desk");
         return;
     }
     changeActiveDesk(lastDesk, true);
 }
 
+void VirtualDeskManager::prevDesk() {
+    int prevId = activeVdesk()->id - 1;
+    if (prevId < 1) {
+        auto keys = std::views::keys(vdesksMap);
+        prevId    = std::ranges::max(keys);
+    }
+    changeActiveDesk(prevId, true);
+}
+
 void VirtualDeskManager::nextDesk(bool cycle) {
     int nextId = activeVdesk()->id + 1;
-    if (!cycle) {
-        changeActiveDesk(nextId, true);
-    } else {
+    if (cycle) {
         nextId = vdesksMap.contains(nextId) ? nextId : 1;
-        changeActiveDesk(nextId, true);
     }
+    changeActiveDesk(nextId, true);
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
@@ -65,12 +73,8 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto currentMonitor = getCurrentMonitor();
-    // if (!currentMonitor) {
-    //     printLog("There are no monitors!");
-    //     return;
-    // }
-    auto        layout = activeVdesk()->activeLayout(conf);
+    auto        currentMonitor = getCurrentMonitor();
+    auto        layout         = activeVdesk()->activeLayout(conf);
     CWorkspace* focusedWorkspace;
     for (auto [lmon, workspaceId] : layout) {
         CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
