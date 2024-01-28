@@ -34,18 +34,18 @@ void VirtualDeskManager::changeActiveDesk(int vdeskId, bool apply) {
             vdeskNamesMap[vdeskId] = std::to_string(vdeskId);
         vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
     }
-    prevDesk        = activeVdesk()->id;
+    lastDesk        = activeVdesk()->id;
     m_activeDeskKey = vdeskId;
     if (apply)
         applyCurrentVDesk();
 }
 
 void VirtualDeskManager::previousDesk() {
-    if (prevDesk == -1) {
+    if (lastDesk == -1) {
         printLog("There's no previous desk");
         return;
     }
-    changeActiveDesk(prevDesk, true);
+    changeActiveDesk(lastDesk, true);
 }
 
 void VirtualDeskManager::nextDesk(bool cycle) {

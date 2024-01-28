@@ -29,12 +29,12 @@ bool                                needsReloading          = false;
 bool                                monitorLayoutChanging   = false;
 
 inline CFunctionHook*               g_pMonitorDestroy = nullptr;
-typedef void (*origMonitorDestroy)(void*, void*);
+typedef void                        (*origMonitorDestroy)(void*, void*);
 
-inline CFunctionHook* g_pMonitorAdded = nullptr;
-typedef void (*origMonitorAdded)(void*, void*);
+inline CFunctionHook*               g_pMonitorAdded = nullptr;
+typedef void                        (*origMonitorAdded)(void*, void*);
 
-void parseNamesConf(std::string& conf) {
+void                                parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -204,7 +204,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
     HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPreviousVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goPreviousVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);

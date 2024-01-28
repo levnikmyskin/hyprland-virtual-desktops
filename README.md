@@ -58,7 +58,7 @@ This plugin exposes a few hyprctl dispatchers:
 | Dispatcher | descritpion | type | example|
 |------------|-------------|------|--------|
 | vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below | `vdesk 3` or `vdesk coding`|
-| prevdesk | Changes to previous virtual desktop | `none` | `prevdesk`|
+| lastdesk | Changes to previous virtual desktop | `none` | `lastdesk`|
 | printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see below | `printdesk` or `printdesk 2` or `printdesk coding`|
 | movetodesk vdesk(, window) | Moves the active/selected window to the specified `vdesk` | `vdesk`, optional window, see below | `movetodesk 2` or `movetodesk 2,title:kitty` |
 | movetodesksilent vdesk(, window) | same as `movetodesk`, but doesn't switch to desk | same as above | same as above |
