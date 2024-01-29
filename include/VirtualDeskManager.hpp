@@ -17,7 +17,7 @@ class VirtualDeskManager {
     void                                                  changeActiveDesk(std::string&, bool);
     void                                                  changeActiveDesk(int, bool);
     void                                                  lastVisitedDesk();
-    void                                                  prevDesk();
+    void                                                  prevDesk(bool backwardCycle);
     void                                                  nextDesk(bool cycle);
     void                                                  applyCurrentVDesk();
     int                                                   moveToDesk(std::string&);

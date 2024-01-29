@@ -12,11 +12,8 @@
 
 #include <any>
 #include <iostream>
-#include <map>
-#include <math.h>
 #include <sstream>
 #include <vector>
-#include <format>
 
 static HOOK_CALLBACK_FN*            onWorkspaceChangeHook   = nullptr;
 static HOOK_CALLBACK_FN*            onConfigReloadedHook    = nullptr;
@@ -70,11 +67,15 @@ void goLastVDeskDispatch(std::string) {
 }
 
 void goPrevDeskDispatch(std::string) {
-    manager->prevDesk();
+    manager->prevDesk(false);
 }
 
 void goNextVDeskDispatch(std::string) {
     manager->nextDesk(false);
+}
+
+void cycleBackwardsDispatch(std::string) {
+    manager->prevDesk(true);
 }
 
 void cycleVDeskDispatch(std::string) {
@@ -211,6 +212,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, BACKCYCLE_DISPATCH_STR, cycleBackwardsDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);

@@ -23,6 +23,7 @@ const std::string NEXTDESK_DISPATCH_STR         = "nextdesk";
 const std::string PRINTDESK_DISPATCH_STR        = "printdesk";
 const std::string PRINTLAYOUT_DISPATCH_STR      = "printlayout";
 const std::string CYCLEVDESK_DISPATCH_STR       = "cyclevdesks";
+const std::string BACKCYCLE_DISPATCH_STR        = "backcyclevdesks";
 
 const std::string REMEMBER_NONE     = "none";
 const std::string REMEMBER_SIZE     = "size";

@@ -49,11 +49,14 @@ void VirtualDeskManager::lastVisitedDesk() {
     changeActiveDesk(lastDesk, true);
 }
 
-void VirtualDeskManager::prevDesk() {
+void VirtualDeskManager::prevDesk(bool backwardCycle) {
     int prevId = activeVdesk()->id - 1;
     if (prevId < 1) {
-        auto keys = std::views::keys(vdesksMap);
-        prevId    = std::ranges::max(keys);
+        prevId = 1;
+        if (backwardCycle) {
+            auto keys = std::views::keys(vdesksMap);
+            prevId    = std::ranges::max(keys);
+        }
     }
     changeActiveDesk(prevId, true);
 }
