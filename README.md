@@ -63,11 +63,15 @@ This plugin exposes a few hyprctl dispatchers:
 | movetodesk vdesk(, window) | Moves the active/selected window to the specified `vdesk` | `vdesk`, optional window, see below | `movetodesk 2` or `movetodesk 2,title:kitty` |
 | movetodesksilent vdesk(, window) | same as `movetodesk`, but doesn't switch to desk | same as above | same as above |
 | vdeskreset (vdesk) | reset layouts on `vdesk` or on all vdesks if no argument is given (see [Layouts](#Layouts))  | optional vdesk, see below | `vdeskreset` or `vdeskreset 2` or `vdeskreset coding` |
+| prevdesk | go to previous vdesk. If less than 1, will simply execute `vdesk 1` | `none` | `prevdesk` |
 | nextdesk | go to next vdesk. Creates it if it doesn't exist | `none` | `nextdesk` |
+| backcyclevdesks | backward cycle between currently existing vdesks. Goes back to vdesk with max id when at vdesk 1 | `none` | `backcyclevdesks` |
 | cyclevdesks | cycle between currently existing vdesks. Goes back to vdesk 1 if next vdesk does not exist | `none` | `cyclevdesks` |
 | printlayout | print to Hyprland logs the current layout | `none` | `printlayout` |
 
 \*`printdesk` currently prints to the active Hyprland session log, thus probably not really useful. 
+
+> BREAKING v2.1.0: `prevdesk` dispatcher was renamed to `lastdesk`. `prevdesk` has a new functionality: it goes to the previous desk. If you were using `prevdesk`, please update your config. 
 
 For `vdesk` names, you can use:
  - ID: e.g., `1`, `2` etc;
