@@ -12,11 +12,8 @@
 
 #include <any>
 #include <iostream>
-#include <map>
-#include <math.h>
 #include <sstream>
 #include <vector>
-#include <format>
 
 static HOOK_CALLBACK_FN*            onWorkspaceChangeHook   = nullptr;
 static HOOK_CALLBACK_FN*            onConfigReloadedHook    = nullptr;
@@ -29,12 +26,12 @@ bool                                needsReloading          = false;
 bool                                monitorLayoutChanging   = false;
 
 inline CFunctionHook*               g_pMonitorDestroy = nullptr;
-typedef void (*origMonitorDestroy)(void*, void*);
+typedef void                        (*origMonitorDestroy)(void*, void*);
 
-inline CFunctionHook* g_pMonitorAdded = nullptr;
-typedef void (*origMonitorAdded)(void*, void*);
+inline CFunctionHook*               g_pMonitorAdded = nullptr;
+typedef void                        (*origMonitorAdded)(void*, void*);
 
-void parseNamesConf(std::string& conf) {
+void                                parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -65,12 +62,20 @@ void virtualDeskDispatch(std::string arg) {
     manager->changeActiveDesk(arg, true);
 }
 
-void goPreviousVDeskDispatch(std::string) {
-    manager->previousDesk();
+void goLastVDeskDispatch(std::string) {
+    manager->lastVisitedDesk();
+}
+
+void goPrevDeskDispatch(std::string) {
+    manager->prevDesk(false);
 }
 
 void goNextVDeskDispatch(std::string) {
     manager->nextDesk(false);
+}
+
+void cycleBackwardsDispatch(std::string) {
+    manager->prevDesk(true);
 }
 
 void cycleVDeskDispatch(std::string) {
@@ -204,8 +209,10 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
     HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPreviousVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, BACKCYCLE_DISPATCH_STR, cycleBackwardsDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);
@@ -226,5 +233,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.0.2"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.1.0"};
 }

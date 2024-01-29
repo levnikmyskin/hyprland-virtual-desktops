@@ -10,13 +10,14 @@ class VirtualDeskManager {
   public:
     VirtualDeskManager();
     std::unordered_map<int, std::shared_ptr<VirtualDesk>> vdesksMap;
-    int                                                   prevDesk      = -1;
+    int                                                   lastDesk      = -1;
     std::unordered_map<int, std::string>                  vdeskNamesMap = {{1, "1"}};
     RememberLayoutConf                                    conf;
     const std::shared_ptr<VirtualDesk>&                   activeVdesk();
     void                                                  changeActiveDesk(std::string&, bool);
     void                                                  changeActiveDesk(int, bool);
-    void                                                  previousDesk();
+    void                                                  lastVisitedDesk();
+    void                                                  prevDesk(bool backwardCycle);
     void                                                  nextDesk(bool cycle);
     void                                                  applyCurrentVDesk();
     int                                                   moveToDesk(std::string&);
