@@ -3,7 +3,7 @@ name = "virtual-desktops"
 authors = ["LevMyskin"]
 commit_pins = [
     ["03ebbe18ed8517ee22591eac82cd54322f42cb7d", "04ebef1386344b835ad4e33edeb8b97c127d9624"],
-    ["03ebbe18ed8517ee22591eac82cd54322f42cb7d", "de85bbf29b4246d89d11dd44709b41b73e4014a7"] 
+    ["03ebbe18ed8517ee22591eac82cd54322f42cb7d", "cccba497c820c3735d8bbdf591f1515b74f17924"] 
 ]
 
 
