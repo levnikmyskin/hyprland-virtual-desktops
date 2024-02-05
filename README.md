@@ -39,8 +39,6 @@ Taking the previous example:
  - When you switch to virtual desktop 2, both screens will switch to empty workspaces. Let's say here you open your email client and your favourite chat application;
  - If you switch back to virtual desktop 1, you will get back your web browser and the IDE on screen 1 and 2; and viceversa when you go back to virtual desktop 2.
  
-**WARNING**: the main branch is currently on `virtual-desktops` v. 2.0b, which is beta software. If you're experiencing any bug, please open an issue here and then consider switching to v. 1.0
-
 ## How does this work?
 
 ### It's just workspaces, really
