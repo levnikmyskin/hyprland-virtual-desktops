@@ -55,13 +55,19 @@ However, if you focus another workspace on a given virtual desktop, the plugin w
 
 This plugin exposes a few hyprctl dispatchers:
 
-| Dispatcher | descritpion | type | example|
+| Dispatcher | description | type | example|
 |------------|-------------|------|--------|
 | vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below | `vdesk 3` or `vdesk coding`|
-| lastdesk | Changes to previous virtual desktop | `none` | `lastdesk`|
+| lastdesk | Changes to last visited virtual desktop | `none` | `lastdesk`|
 | printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see below | `printdesk` or `printdesk 2` or `printdesk coding`|
 | movetodesk vdesk(, window) | Moves the active/selected window to the specified `vdesk` | `vdesk`, optional window, see below | `movetodesk 2` or `movetodesk 2,title:kitty` |
 | movetodesksilent vdesk(, window) | same as `movetodesk`, but doesn't switch to desk | same as above | same as above |
+| movetolastdesk  (window) | Moves the active/selected window to the last visited `vdesk` | optional window | `movetolastdesk` or `movetolastdesk title:kitty` |
+| movetolastdesksilent (window) | same as `movetolastdesk`, but doesn't switch to desk | same as above | same as above |
+| movetoprevdesk (cycleback)(,window) | Moves the active/selected window to the previous `vdesk`. If `cycleback == 1 and vdesk == 1`, moves to vdesk with max id | optional 1 for true, optional window | `movetoprevdesk 1` or `movetodesk ,title:kitty` |
+| movetoprevdesksilent (cycleback)(,window) | same as `movetoprevdesk`, but doesn't switch to desk | same as above | same as above |
+| movetonextdesk (cycle)(, window) | Moves the active/selected window to the next `vdesk`. If `cycle == 1 and vdesk == max`, moves to vdesk 1 | optional 1 for true, optional window | `movetonextdesk 1` or `movetonextdesk ,title:kitty` |
+| movetonextdesksilent (cycle)(, window) | same as `movetonextdesk`, but doesn't switch to desk | same as above | same as above |
 | vdeskreset (vdesk) | reset layouts on `vdesk` or on all vdesks if no argument is given (see [Layouts](#Layouts))  | optional vdesk, see below | `vdeskreset` or `vdeskreset 2` or `vdeskreset coding` |
 | prevdesk | go to previous vdesk. If less than 1, will simply execute `vdesk 1` | `none` | `prevdesk` |
 | nextdesk | go to next vdesk. Creates it if it doesn't exist | `none` | `nextdesk` |
