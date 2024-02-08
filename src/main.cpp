@@ -90,6 +90,33 @@ void moveToDeskSilentDispatch(std::string arg) {
     manager->moveToDesk(arg);
 }
 
+void moveToLastDeskDispatch(std::string arg) {
+    manager->changeActiveDesk(manager->moveToDesk(arg, manager->lastDesk), true);
+}
+
+void moveToLastDeskSilentDispatch(std::string arg) {
+    manager->moveToDesk(arg, manager->lastDesk);
+}
+
+void moveToPrevDeskDispatch(std::string arg) {
+    bool cycle = extractBool(arg);
+    manager->changeActiveDesk(manager->moveToDesk(arg, manager->prevDeskId(cycle)), true);
+}
+void moveToPrevDeskSilentDispatch(std::string arg) {
+    bool cycle = extractBool(arg);
+    manager->moveToDesk(arg, manager->prevDeskId(cycle));
+}
+
+void moveToNextDeskDispatch(std::string arg) {
+    bool cycle = extractBool(arg);
+    manager->changeActiveDesk(manager->moveToDesk(arg, manager->nextDeskId(cycle)), true);
+}
+
+void moveToNextDeskSilentDispatch(std::string arg) {
+    bool cycle = extractBool(arg);
+    manager->moveToDesk(arg, manager->nextDeskId(cycle));
+}
+
 void printVdesk(int vdeskId) {
     printLog("VDesk " + std::to_string(vdeskId) + ": " + manager->vdeskNamesMap[vdeskId]);
 }
@@ -208,17 +235,28 @@ APICALL EXPORT std::string PLUGIN_API_VERSION() {
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
+    // Dispatchers
     HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, BACKCYCLE_DISPATCH_STR, cycleBackwardsDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
+
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETOLASTDESK_DISPATCH_STR, moveToLastDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETOLASTDESKSILENT_DISPATCH_STR, moveToLastDeskSilentDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETOPREVDESK_DISPATCH_STR, moveToPrevDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETOPREVDESKSILENT_DISPATCH_STR, moveToPrevDeskSilentDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETONEXTDESK_DISPATCH_STR, moveToNextDeskDispatch);
+    HyprlandAPI::addDispatcher(PHANDLE, MOVETONEXTDESKSILENT_DISPATCH_STR, moveToNextDeskSilentDispatch);
+
     HyprlandAPI::addDispatcher(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PRINTDESK_DISPATCH_STR, printVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PRINTLAYOUT_DISPATCH_STR, printLayoutDispatch);
+
+    // Configs
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
     HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, SConfigValue{.intValue = 1});
     HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, SConfigValue{.strValue = REMEMBER_SIZE});

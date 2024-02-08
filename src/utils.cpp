@@ -20,6 +20,18 @@ std::string parseMoveDispatch(std::string& arg) {
     return vdeskName;
 }
 
+bool extractBool(std::string& arg) {
+    size_t pos;
+    bool   cycle = false;
+    if ((pos = arg.find(",")) != std::string::npos) {
+        cycle = arg.substr(0, pos) == "1";
+        arg.erase(0, pos + 1);
+    } else {
+        cycle = arg == "1";
+    }
+    return cycle;
+}
+
 RememberLayoutConf layoutConfFromInt(const int64_t i) {
     switch (i) {
         case 0: return RememberLayoutConf::none;
