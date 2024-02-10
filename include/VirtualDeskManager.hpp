@@ -20,13 +20,15 @@ class VirtualDeskManager {
     void                                                  prevDesk(bool backwardCycle);
     void                                                  nextDesk(bool cycle);
     void                                                  applyCurrentVDesk();
-    int                                                   moveToDesk(std::string&);
+    int                                                   moveToDesk(std::string&, int vdeskId = -1);
     void                                                  loadLayoutConf();
     void                                                  invalidateAllLayouts();
     void                                                  resetAllVdesks();
     void                                                  resetVdesk(const std::string& arg);
     void                                                  deleteInvalidMonitorsOnAllVdesks(const CMonitor*);
     void                                                  deleteInvalidMonitorsOnAllVdesks();
+    int                                                   prevDeskId(bool backwardCycle);
+    int                                                   nextDeskId(bool cycle);
 
   private:
     int       m_activeDeskKey = 1;

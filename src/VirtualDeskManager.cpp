@@ -50,23 +50,11 @@ void VirtualDeskManager::lastVisitedDesk() {
 }
 
 void VirtualDeskManager::prevDesk(bool backwardCycle) {
-    int prevId = activeVdesk()->id - 1;
-    if (prevId < 1) {
-        prevId = 1;
-        if (backwardCycle) {
-            auto keys = std::views::keys(vdesksMap);
-            prevId    = std::ranges::max(keys);
-        }
-    }
-    changeActiveDesk(prevId, true);
+    changeActiveDesk(prevDeskId(backwardCycle), true);
 }
 
 void VirtualDeskManager::nextDesk(bool cycle) {
-    int nextId = activeVdesk()->id + 1;
-    if (cycle) {
-        nextId = vdesksMap.contains(nextId) ? nextId : 1;
-    }
-    changeActiveDesk(nextId, true);
+    changeActiveDesk(nextDeskId(cycle), true);
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
@@ -111,7 +99,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
         currentMonitor->changeWorkspace(focusedWorkspace, false);
 }
 
-int VirtualDeskManager::moveToDesk(std::string& arg) {
+int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // TODO: this should be improved:
     //   1. if there's an empty workspace on the specified vdesk, we should move the window there;
     //   2. we should give a way to specify on which workspace to move the window. It'd be best if user could specify 1,2,3
@@ -121,11 +109,12 @@ int VirtualDeskManager::moveToDesk(std::string& arg) {
         return -1;
     }
 
-    int  vdeskId;
-    auto vdeskName = parseMoveDispatch(arg);
-    try {
-        vdeskId = std::stoi(vdeskName);
-    } catch (std::exception& _) { vdeskId = getDeskIdFromName(vdeskName); }
+    if (vdeskId < 1) {
+        auto vdeskName = parseMoveDispatch(arg);
+        try {
+            vdeskId = std::stoi(vdeskName);
+        } catch (std::exception& _) { vdeskId = getDeskIdFromName(vdeskName); }
+    }
 
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
@@ -247,6 +236,26 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     }
 
     vdesksMap[vdeskId]->resetLayout();
+}
+
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    int prevId = activeVdesk()->id - 1;
+    if (prevId < 1) {
+        prevId = 1;
+        if (backwardCycle) {
+            auto keys = std::views::keys(vdesksMap);
+            prevId    = std::ranges::max(keys);
+        }
+    }
+    return prevId;
+}
+
+int VirtualDeskManager::nextDeskId(bool cycle) {
+    int nextId = activeVdesk()->id + 1;
+    if (cycle) {
+        nextId = vdesksMap.contains(nextId) ? nextId : 1;
+    }
+    return nextId;
 }
 
 void VirtualDeskManager::invalidateAllLayouts() {
