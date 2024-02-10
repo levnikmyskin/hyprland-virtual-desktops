@@ -28,6 +28,7 @@ bool extractBool(std::string& arg) {
         arg.erase(0, pos + 1);
     } else {
         cycle = arg == "1";
+        arg   = ""; // "consume" string content
     }
     return cycle;
 }
