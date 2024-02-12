@@ -146,17 +146,31 @@ void printVDeskDispatch(std::string arg) {
         }
 }
 
-void printLayoutDispatch(std::string arg) {
-    auto               activeDesk = manager->activeVdesk();
-    auto               layout     = activeDesk->activeLayout(manager->conf);
-    std::ostringstream out;
-    out << "Active desk: " << activeDesk->name;
-    out << "\nActive layout size " << layout.size();
-    out << "; Monitors:\n";
-    for (auto const& [desc, wid] : layout) {
-        out << desc << "; Workspace " << wid << "\n";
+std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
+    auto        activeDesk = manager->activeVdesk();
+    auto        layout     = activeDesk->activeLayout(manager->conf);
+    std::string out;
+    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+        out += std::format("Active desk: {}\nActive layout size: {}; Monitors:\n", activeDesk->name, layout.size());
+        for (auto const& [mon, wid] : layout) {
+            out += std::format("{}; Workspace {}", escapeJSONStrings(mon->szName), wid);
+        }
+    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+        out += std::format(R"#({{
+            "activeDesk": {},
+            "activeLayoutSize": {},
+            "monitors": [
+                )#",
+                           activeDesk->name, layout.size());
+        for (auto const& [mon, wid] : layout) {
+            out += std::format(R"#({{
+                "monitorId": {},
+                "workspace": {}
+            }})#",
+                               mon->ID, wid);
+        }
     }
-    printLog(out.str());
+    return out;
 }
 
 void resetVDeskDispatch(std::string arg) {
@@ -227,6 +241,16 @@ void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
     manager->loadLayoutConf();
 }
 
+void registerHyprctlCommands() {
+    SHyprCtlCommand cmd;
+    cmd.name  = PRINTLAYOUT_DISPATCH_STR;
+    cmd.fn    = printLayoutDispatch;
+    cmd.exact = true;
+    auto ptr  = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    if (!ptr)
+        printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
+}
+
 // Do NOT change this function.
 APICALL EXPORT std::string PLUGIN_API_VERSION() {
     return HYPRLAND_API_VERSION;
@@ -254,7 +278,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     HyprlandAPI::addDispatcher(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
     HyprlandAPI::addDispatcher(PHANDLE, PRINTDESK_DISPATCH_STR, printVDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, PRINTLAYOUT_DISPATCH_STR, printLayoutDispatch);
 
     // Configs
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
@@ -268,6 +291,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     onMonitorDisconnectHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", onMonitorDisconnect);
     onMonitorAddedHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
     onRenderHook            = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preRender", onRender);
+    registerHyprctlCommands();
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
