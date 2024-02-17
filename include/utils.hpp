@@ -52,5 +52,9 @@ std::string                            parseMoveDispatch(std::string& arg);
 bool                                   extractBool(std::string& arg);
 std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
 
+std::string                            ltrim(const std::string& s);
+std::string                            rtrim(const std::string& s);
+std::string                            trim(const std::string& s);
+
 bool                                   isVerbose();
 #endif
