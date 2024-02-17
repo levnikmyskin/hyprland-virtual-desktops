@@ -9,29 +9,32 @@
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
 #include "utils.hpp"
+#include "sticky_apps.hpp"
 
 #include <any>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
-static HOOK_CALLBACK_FN*            onWorkspaceChangeHook   = nullptr;
-static HOOK_CALLBACK_FN*            onConfigReloadedHook    = nullptr;
-static HOOK_CALLBACK_FN*            onMonitorDisconnectHook = nullptr;
-static HOOK_CALLBACK_FN*            onMonitorAddedHook      = nullptr;
-static HOOK_CALLBACK_FN*            onRenderHook            = nullptr;
-std::unique_ptr<VirtualDeskManager> manager                 = std::make_unique<VirtualDeskManager>();
-bool                                notifiedInit            = false;
-bool                                needsReloading          = false;
-bool                                monitorLayoutChanging   = false;
+static HOOK_CALLBACK_FN*             onWorkspaceChangeHook   = nullptr;
+static HOOK_CALLBACK_FN*             onWindowOpenHook        = nullptr;
+static HOOK_CALLBACK_FN*             onConfigReloadedHook    = nullptr;
+static HOOK_CALLBACK_FN*             onMonitorDisconnectHook = nullptr;
+static HOOK_CALLBACK_FN*             onMonitorAddedHook      = nullptr;
+static HOOK_CALLBACK_FN*             onRenderHook            = nullptr;
+std::unique_ptr<VirtualDeskManager>  manager                 = std::make_unique<VirtualDeskManager>();
+std::vector<StickyApps::SStickyRule> stickyRules;
+bool                                 notifiedInit          = false;
+bool                                 needsReloading        = false;
+bool                                 monitorLayoutChanging = false;
 
-inline CFunctionHook*               g_pMonitorDestroy = nullptr;
-typedef void                        (*origMonitorDestroy)(void*, void*);
+inline CFunctionHook*                g_pMonitorDestroy = nullptr;
+typedef void                         (*origMonitorDestroy)(void*, void*);
 
-inline CFunctionHook*               g_pMonitorAdded = nullptr;
-typedef void                        (*origMonitorAdded)(void*, void*);
+inline CFunctionHook*                g_pMonitorAdded = nullptr;
+typedef void                         (*origMonitorAdded)(void*, void*);
 
-void                                parseNamesConf(std::string& conf) {
+void                                 parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -55,6 +58,16 @@ void                                parseNamesConf(std::string& conf) {
     } catch (std::exception const& ex) {
         // #aa1245
         HyprlandAPI::addNotification(PHANDLE, "Syntax error in your virtual-desktops names config", CColor{4289335877}, 8000);
+    }
+}
+
+void parseStickyRule(const std::string& command, const std::string& value) {
+    StickyApps::SStickyRule rule;
+    if (!StickyApps::parseRule(value, rule, manager)) {
+        auto err = std::format("Error in your sticky rule: {}", value);
+        HyprlandAPI::addNotification(PHANDLE, err, CColor{4289335877}, 8000);
+    } else {
+        stickyRules.push_back(rule);
     }
 }
 
@@ -185,6 +198,11 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
         printLog("workspace changed: workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(workspace->m_iMonitorID));
 }
 
+void onWindowOpen(void*, SCallbackInfo&, std::any val) {
+    CWindow* window = std::any_cast<CWindow*>(val);
+    StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+}
+
 void onMonitorDisconnect(void*, SCallbackInfo&, std::any val) {
     CMonitor* monitor = std::any_cast<CMonitor*>(val);
     if (isVerbose())
@@ -212,6 +230,7 @@ void onRender(void*, SCallbackInfo&, std::any val) {
     if (needsReloading) {
         printLog("on render called and needs reloading");
         manager->applyCurrentVDesk();
+        StickyApps::applyRules(stickyRules, manager);
         needsReloading = false;
     }
 }
@@ -263,7 +282,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, SConfigValue{.intValue = 1});
     HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, SConfigValue{.intValue = 0});
 
+    // Keywords
+    HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule);
+
     onWorkspaceChangeHook   = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
+    onWindowOpenHook        = HyprlandAPI::registerCallbackDynamic(PHANDLE, "openWindow", onWindowOpen);
     onConfigReloadedHook    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
     onMonitorDisconnectHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", onMonitorDisconnect);
     onMonitorAddedHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
