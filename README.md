@@ -9,6 +9,9 @@
     - [It's just workspaces, really](#its-just-workspaces-really)
     - [Hyprctl dispatchers](#hyprctl-dispatchers)
       - [Mix with Hyprland native workspaces](#mix-with-hyprland-native-workspaces)
+    - [Hyprland keywords](#hyprland-keywords)
+      - [Syntax](#syntax)
+      - [Examples](#examples)
     - [Configuration values](#configuration-values)
       - [Example config](#example-config)
   - [Layouts](#layouts)
@@ -104,8 +107,8 @@ to the same vdesk given the same number of monitors, unless you focus (e.g. with
 The vdesk a workspace will end up to is easily computed by doing `ceil(workspace_id / n_monitors)`. You know where I'm going with this one...you can easily script it.
 
 ### Hyprland keywords
-Since version 2.2, this plugin exposes one keyword: `stickyrule`. 
-A sticky rule is composed of a window identifier and a vdesk identifier.
+Since version 2.2, this plugin exposes one keyword: `stickyrule`.  
+A sticky rule is composed of a window identifier and a vdesk identifier.  
 A window matched by a sticky rule will be moved to the matched vdesk:
   1. When the window is created (similar to [Hyprland's `workspace` windowrule](https://wiki.hyprland.org/Configuring/Window-Rules/#window-rules-v2), but with virtual desks);
   2. Every time a monitor is connected/disconnected.
@@ -122,7 +125,7 @@ stickyrule = window,vdesk
   - `vdesk` identifier has the same syntax specified above.
 
 #### Examples
-`stickyrule = class:^(kittysticky)$,3`
+`stickyrule = class:^(kittysticky)$,3`  
 `stickyrule = title:thunderbird,mail`
 
 
