@@ -200,7 +200,8 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
     CWindow* window = std::any_cast<CWindow*>(val);
-    StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+    int      vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+    manager->changeActiveDesk(vdesk, true);
 }
 
 void onMonitorDisconnect(void*, SCallbackInfo&, std::any val) {
@@ -230,7 +231,7 @@ void onRender(void*, SCallbackInfo&, std::any val) {
     if (needsReloading) {
         printLog("on render called and needs reloading");
         manager->applyCurrentVDesk();
-        StickyApps::applyRules(stickyRules, manager);
+        StickyApps::matchRules(stickyRules, manager);
         needsReloading = false;
     }
 }

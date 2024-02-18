@@ -19,9 +19,9 @@ namespace StickyApps {
 
     bool              parseWindowRule(const std::string&, SStickyRule&);
 
-    void              applyRules(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&);
+    void              matchRules(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&);
 
-    void              matchRuleOnWindow(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&, CWindow*);
+    int               matchRuleOnWindow(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&, CWindow*);
 
     const std::string extractProperty(const SStickyRule&, std::unique_ptr<CWindow>&);
     const std::string extractProperty(const SStickyRule&, CWindow*);

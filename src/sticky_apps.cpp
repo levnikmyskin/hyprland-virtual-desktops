@@ -27,7 +27,7 @@ bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
     return true;
 }
 
-void StickyApps::applyRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
+void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     for (auto& r : rules) {
         for (auto& w : g_pCompositor->m_vWindows) {
             auto windowProp = extractProperty(r, w);
@@ -42,7 +42,7 @@ void StickyApps::applyRules(const std::vector<SStickyRule>& rules, std::unique_p
     }
 }
 
-void StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager, CWindow* window) {
+int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager, CWindow* window) {
     for (auto& r : rules) {
         auto windowProp = extractProperty(r, window);
         if (windowProp == "")
@@ -51,8 +51,10 @@ void StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::u
             printLog(std::format("rule matched {}: {}", r.value, windowProp));
             auto windowPidFmt = std::format("pid:{}", window->getPID());
             vdeskManager->moveToDesk(windowPidFmt, r.vdesk);
+            return r.vdesk;
         }
     }
+    return -1;
 }
 
 const std::string StickyApps::extractProperty(const SStickyRule& rule, std::unique_ptr<CWindow>& window) {
