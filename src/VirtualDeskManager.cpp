@@ -268,9 +268,9 @@ CMonitor* VirtualDeskManager::getCurrentMonitor() {
     CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
-    if (currentMonitor && !currentMonitor->m_bEnabled) {
+    if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
         for (std::shared_ptr<CMonitor> mon : g_pCompositor->m_vMonitors) {
-            if (mon->m_bEnabled)
+            if (mon->m_bEnabled && mon->output)
                 return mon.get();
         }
         return nullptr;
