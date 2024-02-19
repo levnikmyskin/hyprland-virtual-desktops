@@ -130,6 +130,14 @@ std::shared_ptr<CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<s
     return newMonitor;
 }
 
+bool VirtualDesk::isWorkspaceOnActiveLayout(int workspaceId) {
+    for (auto [_, wid] : layouts[m_activeLayout_idx]) {
+        if (workspaceId == wid)
+            return true;
+    }
+    return false;
+}
+
 void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CMonitor* exclude) {
     auto enabledMons = currentlyEnabledMonitors(exclude);
     if (enabledMons.size() == 0)
