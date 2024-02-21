@@ -121,10 +121,23 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     if (!vdeskNamesMap.contains(vdeskId))
         vdeskNamesMap[vdeskId] = std::to_string(vdeskId);
 
-    auto vdesk = vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
+    auto  vdesk = vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
 
-    // just take the first workspace wherever in the layout
-    auto        wid = vdesk->activeLayout(conf).begin()->second;
+    auto* window = g_pCompositor->getWindowByRegex(arg);
+    if (!window) {
+        printLog(std::format("Window {} does not exist???", arg), LogLevel::ERR);
+        return vdeskId;
+    }
+
+    // take the first workspace wherever in the layout
+    // and later go for the workspace which is on the same monitor
+    // of the window
+    auto wid = vdesk->activeLayout(conf).begin()->second;
+    for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
+        if (mon->ID == window->m_iMonitorID) {
+            wid = workspace;
+        }
+    }
 
     std::string moveCmd;
     if (arg == "") {
