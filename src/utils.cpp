@@ -52,6 +52,9 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
 
 bool isVerbose() {
     static auto* const PVERBOSELOGS = &HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->intValue;
+    // this might happen if called before plugin is initalized
+    if (!PVERBOSELOGS)
+        return true;
     return *PVERBOSELOGS;
 }
 

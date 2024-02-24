@@ -32,9 +32,10 @@ class VirtualDeskManager {
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
 
   private:
-    int       m_activeDeskKey = 1;
-    bool      confLoaded      = false;
-    void      cycleWorkspaces();
-    CMonitor* getCurrentMonitor();
+    int                          m_activeDeskKey = 1;
+    bool                         confLoaded      = false;
+    void                         cycleWorkspaces();
+    CMonitor*                    getCurrentMonitor();
+    std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
 };
 #endif
