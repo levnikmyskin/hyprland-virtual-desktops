@@ -37,7 +37,7 @@ void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_p
                 printLog(std::format("rule matched {}: {}", r.value, windowProp));
                 auto windowPidFmt = std::format("pid:{}", w->getPID());
                 auto map          = vdeskManager->vdesksMap;
-                if (map.find(r.vdesk) != map.end() && map[r.vdesk]->isWorkspaceOnActiveLayout(w->m_iWorkspaceID))
+                if (map.contains(r.vdesk) && map[r.vdesk]->isWorkspaceOnActiveLayout(w->m_iWorkspaceID))
                     continue;
                 vdeskManager->moveToDesk(windowPidFmt, r.vdesk);
             }
