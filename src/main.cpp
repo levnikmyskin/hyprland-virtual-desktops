@@ -181,6 +181,7 @@ void resetVDeskDispatch(std::string arg) {
         manager->resetVdesk(arg);
     }
     manager->applyCurrentVDesk();
+    StickyApps::matchRules(stickyRules, manager);
 }
 
 void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
