@@ -51,7 +51,7 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
 }
 
 bool isVerbose() {
-    static auto* const PVERBOSELOGS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS);
+    static auto* const PVERBOSELOGS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->getDataStaticPtr();
     return **PVERBOSELOGS;
 }
 
