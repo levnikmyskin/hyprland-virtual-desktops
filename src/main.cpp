@@ -144,8 +144,9 @@ void printVdesk(std::string name) {
 }
 
 void printVDeskDispatch(std::string arg) {
-    static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseNamesConf(*PVDESKNAMES);
+    std::string vdesknamesConf = std::any_cast<Hyprlang::STRING>(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF));
+
+    parseNamesConf(vdesknamesConf);
 
     if (arg.length() == 0) {
         printVdesk(manager->activeVdesk()->id);
@@ -239,13 +240,13 @@ void onRender(void*, SCallbackInfo&, std::any val) {
 }
 
 void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
-    static auto* const PNOTIFYINIT = &HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->intValue;
+    static auto* const PNOTIFYINIT = (Hyprlang::INT const*)HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT);
     if (*PNOTIFYINIT && !notifiedInit) {
         HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CColor{0.f, 1.f, 1.f, 1.f}, 5000);
         notifiedInit = true;
     }
-    static auto* const PVDESKNAMES = &HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF)->strValue;
-    parseNamesConf(*PVDESKNAMES);
+    std::string vdesknamesConf = std::any_cast<Hyprlang::STRING>(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF));
+    parseNamesConf(vdesknamesConf);
     manager->loadLayoutConf();
 }
 
@@ -279,11 +280,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addDispatcher(PHANDLE, PRINTLAYOUT_DISPATCH_STR, printLayoutDispatch);
 
     // Configs
-    HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, SConfigValue{.strValue = "unset"});
-    HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, SConfigValue{.intValue = 1});
-    HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, SConfigValue{.strValue = REMEMBER_SIZE});
-    HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, SConfigValue{.intValue = 1});
-    HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, SConfigValue{.intValue = 0});
+    HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, Hyprlang::STRING{"unset"});
+    HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, Hyprlang::INT{1});
+    HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, Hyprlang::STRING{REMEMBER_SIZE.c_str()});
+    HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, Hyprlang::INT{1});
+    HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, Hyprlang::INT{0});
 
     // Keywords
     HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule);
@@ -297,5 +298,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.1.0"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.1.1"};
 }
