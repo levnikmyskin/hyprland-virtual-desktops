@@ -28,7 +28,6 @@ bool                                 notifiedInit          = false;
 bool                                 needsReloading        = false;
 bool                                 monitorLayoutChanging = false;
 
-inline CFunctionHook*                g_pMonitorDestroy = nullptr;
 typedef void (*origMonitorDestroy)(void*, void*);
 
 inline CFunctionHook* g_pMonitorAdded = nullptr;
