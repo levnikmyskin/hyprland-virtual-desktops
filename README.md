@@ -9,6 +9,7 @@
     - [It's just workspaces, really](#its-just-workspaces-really)
     - [Hyprctl dispatchers](#hyprctl-dispatchers)
       - [Mix with Hyprland native workspaces](#mix-with-hyprland-native-workspaces)
+    - [Hyprctl commands](#hyprctl-commands)
     - [Hyprland keywords](#hyprland-keywords)
       - [Syntax](#syntax)
       - [Examples](#examples)
@@ -60,7 +61,6 @@ This plugin exposes a few hyprctl dispatchers:
 |------------|-------------|------|--------|
 | vdesk [vdesk]      | Changes to virtual desktop `vdesk` | see below | `vdesk 3` or `vdesk coding`|
 | lastdesk | Changes to last visited virtual desktop | `none` | `lastdesk`|
-| printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see below | `printdesk` or `printdesk 2` or `printdesk coding`|
 | movetodesk vdesk(, window) | Moves the active/selected window to the specified `vdesk` | `vdesk`, optional window, see below | `movetodesk 2` or `movetodesk 2,title:kitty` |
 | movetodesksilent vdesk(, window) | same as `movetodesk`, but doesn't switch to desk | same as above | same as above |
 | movetolastdesk  (window) | Moves the active/selected window to the last visited `vdesk` | optional window | `movetolastdesk` or `movetolastdesk title:kitty` |
@@ -74,9 +74,7 @@ This plugin exposes a few hyprctl dispatchers:
 | nextdesk | go to next vdesk. Creates it if it doesn't exist | `none` | `nextdesk` |
 | backcyclevdesks | backward cycle between currently existing vdesks. Goes back to vdesk with max id when at vdesk 1 | `none` | `backcyclevdesks` |
 | cyclevdesks | cycle between currently existing vdesks. Goes back to vdesk 1 if next vdesk does not exist | `none` | `cyclevdesks` |
-| printlayout | print to Hyprland logs the current layout | `none` | `printlayout` |
 
-\*`printdesk` currently prints to the active Hyprland session log, thus probably not really useful. 
 
 > BREAKING v2.1.0: `prevdesk` dispatcher was renamed to `lastdesk`. `prevdesk` has a new functionality: it goes to the previous desk. If you were using `prevdesk`, please update your config. 
 
@@ -105,6 +103,16 @@ to the same vdesk given the same number of monitors, unless you focus (e.g. with
  - Given four monitors...
 
 The vdesk a workspace will end up to is easily computed by doing `ceil(workspace_id / n_monitors)`. You know where I'm going with this one...you can easily script it.
+
+### Hyprctl commands
+Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, you can use them by calling `hyprctl {command} {args}`.  
+**NOTICE**: some of these used to be dispatchers.
+
+| Command | description | args | example|
+|------------|-------------|------|--------|
+| printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see [above](#hyprctl-dispatchers) | `hyprctl printdesk` or `hyprctl printdesk 2` or `hyprctl printdesk coding`|
+| printlayout | print to Hyprland logs the current layout | `none` | `hyprctl printlayout` |
+
 
 ### Hyprland keywords
 Since version 2.2, this plugin exposes one keyword: `stickyrule`.  
