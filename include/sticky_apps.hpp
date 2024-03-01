@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef STICKYAPPS_H
+#define STICKYAPPS_H
 #include <string>
 #include <VirtualDeskManager.hpp>
 
@@ -28,3 +30,4 @@ namespace StickyApps {
 
     bool              ruleMatch(const std::string&, const std::string&);
 }
+#endif

@@ -60,14 +60,17 @@ void parseNamesConf(std::string& conf) {
     }
 }
 
-void parseStickyRule(const std::string& command, const std::string& value) {
+Hyprlang::CParseResult parseStickyRule(const char* command, const char* value) {
+    Hyprlang::CParseResult  result;
     StickyApps::SStickyRule rule;
-    if (!StickyApps::parseRule(value, rule, manager)) {
-        auto err = std::format("Error in your sticky rule: {}", value);
-        HyprlandAPI::addNotification(PHANDLE, err, CColor{4289335877}, 8000);
+    std::string             value_str = value;
+    if (!StickyApps::parseRule(value_str, rule, manager)) {
+        std::string err = std::format("Error in your sticky rule: {}", value);
+        result.setError(err.c_str());
     } else {
         stickyRules.push_back(rule);
     }
+    return result;
 }
 
 void virtualDeskDispatch(std::string arg) {
@@ -289,7 +292,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, Hyprlang::INT{0});
 
     // Keywords
-    HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule);
+    HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule, Hyprlang::SHandlerOptions{});
 
     onWorkspaceChangeHook   = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
     onWindowOpenHook        = HyprlandAPI::registerCallbackDynamic(PHANDLE, "openWindow", onWindowOpen);
