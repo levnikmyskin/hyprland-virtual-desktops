@@ -167,13 +167,13 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     auto        layout     = activeDesk->activeLayout(manager->conf);
     std::string out;
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
-        out += std::format("Active desk: {}\nActive layout size: {}; Monitors:\n", activeDesk->name, layout.size());
+        out += std::format("Active desk: {}\nActive layout size: {};\nMonitors:", activeDesk->name, layout.size());
         for (auto const& [mon, wid] : layout) {
-            out += std::format("{}; Workspace {}", escapeJSONStrings(mon->szName), wid);
+            out += std::format("\n\t{}; Workspace {}", escapeJSONStrings(mon->szName), wid);
         }
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         out += std::format(R"#({{
-            "activeDesk": {},
+            "activeDesk": "{}",
             "activeLayoutSize": {},
             "monitors": [
                 )#",
@@ -185,6 +185,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
             }})#",
                                mon->ID, wid);
         }
+        out += "]\n}";
     }
     return out;
 }
