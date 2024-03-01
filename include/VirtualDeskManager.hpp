@@ -29,12 +29,13 @@ class VirtualDeskManager {
     void                                                  deleteInvalidMonitorsOnAllVdesks();
     int                                                   prevDeskId(bool backwardCycle);
     int                                                   nextDeskId(bool cycle);
+    int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
 
   private:
-    int       m_activeDeskKey = 1;
-    bool      confLoaded      = false;
-    void      cycleWorkspaces();
-    int       getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
-    CMonitor* getCurrentMonitor();
+    int                          m_activeDeskKey = 1;
+    bool                         confLoaded      = false;
+    void                         cycleWorkspaces();
+    CMonitor*                    getCurrentMonitor();
+    std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
 };
 #endif

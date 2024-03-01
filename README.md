@@ -9,6 +9,9 @@
     - [It's just workspaces, really](#its-just-workspaces-really)
     - [Hyprctl dispatchers](#hyprctl-dispatchers)
       - [Mix with Hyprland native workspaces](#mix-with-hyprland-native-workspaces)
+    - [Hyprland keywords](#hyprland-keywords)
+      - [Syntax](#syntax)
+      - [Examples](#examples)
     - [Configuration values](#configuration-values)
       - [Example config](#example-config)
   - [Layouts](#layouts)
@@ -103,6 +106,29 @@ to the same vdesk given the same number of monitors, unless you focus (e.g. with
 
 The vdesk a workspace will end up to is easily computed by doing `ceil(workspace_id / n_monitors)`. You know where I'm going with this one...you can easily script it.
 
+### Hyprland keywords
+Since version 2.2, this plugin exposes one keyword: `stickyrule`.  
+A sticky rule is composed of a window identifier and a vdesk identifier.  
+A window matched by a sticky rule will be moved to the matched vdesk:
+  1. When the window is created (similar to [Hyprland's `workspace` windowrule](https://wiki.hyprland.org/Configuring/Window-Rules/#window-rules-v2), but with virtual desks);
+  2. Every time a monitor is connected/disconnected.
+  
+**BE CAREFUL**:
+  1. **NOT** to mix this with Hyprland's `workspace` windowrule (it wouldn't make sense right?);
+  2. This is not a plugin config, but an Hyprland keyword. Place it in the top level of Hyprland's config (i.e., where you'd put windowrules too).
+  
+#### Syntax
+```bash
+stickyrule = window,vdesk
+```
+  - `window` identifier has the same syntax as [Hyprland's windowrule window](https://wiki.hyprland.org/Configuring/Window-Rules/#window-rules-v2) identifier;
+  - `vdesk` identifier has the same syntax specified above.
+
+#### Examples
+`stickyrule = class:^(kittysticky)$,3`  
+`stickyrule = title:thunderbird,mail`
+
+
 
 ### Configuration values
 
@@ -122,6 +148,9 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 
 #### Example config 
 ```ini
+stickyrule = class:^(kittysticky)$,3
+stickyrule = title:thunderbird,mail
+
 plugin {
     virtual-desktops {
         names = 1:coding, 2:internet, 3:mail and chats 
