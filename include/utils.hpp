@@ -28,14 +28,15 @@ const std::string MOVETOLASTDESKSILENT_DISPATCH_STR = "movetolastdesksilent";
 const std::string MOVETOPREVDESKSILENT_DISPATCH_STR = "movetoprevdesksilent";
 const std::string MOVETONEXTDESKSILENT_DISPATCH_STR = "movetonextdesksilent";
 
+const std::string LASTDESK_DISPATCH_STR   = "lastdesk";
+const std::string PREVDESK_DISPATCH_STR   = "prevdesk";
+const std::string NEXTDESK_DISPATCH_STR   = "nextdesk";
+const std::string CYCLEVDESK_DISPATCH_STR = "cyclevdesks";
+const std::string BACKCYCLE_DISPATCH_STR  = "backcyclevdesks";
+
 const std::string RESET_VDESK_DISPATCH_STR = "vdeskreset";
-const std::string LASTDESK_DISPATCH_STR    = "lastdesk";
-const std::string PREVDESK_DISPATCH_STR    = "prevdesk";
-const std::string NEXTDESK_DISPATCH_STR    = "nextdesk";
 const std::string PRINTDESK_DISPATCH_STR   = "printdesk";
 const std::string PRINTLAYOUT_DISPATCH_STR = "printlayout";
-const std::string CYCLEVDESK_DISPATCH_STR  = "cyclevdesks";
-const std::string BACKCYCLE_DISPATCH_STR   = "backcyclevdesks";
 
 const std::string REMEMBER_NONE     = "none";
 const std::string REMEMBER_SIZE     = "size";
