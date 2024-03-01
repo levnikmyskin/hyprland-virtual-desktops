@@ -240,12 +240,12 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland.url = "github:hyprwm/Hyprland";
-
-    hyprland-virtual-desktops = {
-      url = "github:levnikmyskin/hyprland-virtual-desktops";
-      inputs.hyprland.follows = "hyprland"; # We want to build against the same version of hyprland that we are using
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      follows = "hyprland-virtual-desktops"; # We make sure we use the version that is known to be compatable with hyprland-virtual-desktops
     };
+
+    hyprland-virtual-desktops.url = "github:levnikmyskin/hyprland-virtual-desktops";
         
   };
 
