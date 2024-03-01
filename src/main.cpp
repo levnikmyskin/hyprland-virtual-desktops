@@ -28,12 +28,12 @@ bool                                 notifiedInit          = false;
 bool                                 needsReloading        = false;
 bool                                 monitorLayoutChanging = false;
 
-typedef void (*origMonitorDestroy)(void*, void*);
+typedef void                         (*origMonitorDestroy)(void*, void*);
 
-inline CFunctionHook* g_pMonitorAdded = nullptr;
-typedef void (*origMonitorAdded)(void*, void*);
+inline CFunctionHook*                g_pMonitorAdded = nullptr;
+typedef void                         (*origMonitorAdded)(void*, void*);
 
-void parseNamesConf(std::string& conf) {
+void                                 parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -243,12 +243,10 @@ void onRender(void*, SCallbackInfo&, std::any val) {
 
 void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
     static auto* const PNOTIFYINIT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->getDataStaticPtr();
-    printLog("aiuto");
     if (**PNOTIFYINIT && !notifiedInit) {
         HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CColor{0.f, 1.f, 1.f, 1.f}, 5000);
         notifiedInit = true;
     }
-    printLog("aiuto2");
     static auto* const PVDESKNAMESCONF = (Hyprlang::STRING const*)(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF))->getDataStaticPtr();
     auto               vdeskNamesConf  = std::string{*PVDESKNAMESCONF};
     parseNamesConf(vdeskNamesConf);
