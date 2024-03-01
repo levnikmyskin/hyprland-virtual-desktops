@@ -4,9 +4,8 @@
 #include <ranges>
 
 VirtualDeskManager::VirtualDeskManager() {
-    this->conf       = RememberLayoutConf::size;
-    vdeskNamesMap[1] = "1";
-    vdesksMap[1]     = std::make_shared<VirtualDesk>();
+    this->conf = RememberLayoutConf::size;
+    getOrCreateVdesk(1);
 }
 
 const std::shared_ptr<VirtualDesk>& VirtualDeskManager::activeVdesk() {
@@ -28,13 +27,7 @@ void VirtualDeskManager::changeActiveDesk(int vdeskId, bool apply) {
         return;
     }
 
-    if (!vdesksMap.contains(vdeskId)) {
-        if (isVerbose())
-            printLog("creating new vdesk with id " + std::to_string(vdeskId));
-        if (!vdeskNamesMap.contains(vdeskId))
-            vdeskNamesMap[vdeskId] = std::to_string(vdeskId);
-        vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
-    }
+    getOrCreateVdesk(vdeskId);
     lastDesk        = activeVdesk()->id;
     m_activeDeskKey = vdeskId;
     if (apply)
@@ -64,9 +57,9 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto        currentMonitor = getCurrentMonitor();
-    auto        layout         = activeVdesk()->activeLayout(conf);
-    CWorkspace* focusedWorkspace;
+    auto        currentMonitor   = getCurrentMonitor();
+    auto        layout           = activeVdesk()->activeLayout(conf);
+    CWorkspace* focusedWorkspace = nullptr;
     for (auto [lmon, workspaceId] : layout) {
         CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
         if (!lmon || !lmon->m_bEnabled) {
@@ -95,7 +88,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
         }
         mon->changeWorkspace(workspace, false);
     }
-    if (currentMonitor)
+    if (currentMonitor && focusedWorkspace)
         currentMonitor->changeWorkspace(focusedWorkspace, false);
 }
 
@@ -118,10 +111,8 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
 
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
-    if (!vdeskNamesMap.contains(vdeskId))
-        vdeskNamesMap[vdeskId] = std::to_string(vdeskId);
 
-    auto  vdesk = vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
+    auto  vdesk = getOrCreateVdesk(vdeskId);
 
     auto* window = g_pCompositor->getWindowByRegex(arg);
     if (!window) {
@@ -164,8 +155,8 @@ int VirtualDeskManager::getDeskIdFromName(const std::string& name, bool createIf
             max_key = key;
     }
     if (!found && createIfNotFound) {
-        vdesk                = max_key + 1;
-        vdeskNamesMap[vdesk] = name;
+        vdesk = max_key + 1;
+        getOrCreateVdesk(vdesk);
     }
     return vdesk;
 }
@@ -271,6 +262,18 @@ int VirtualDeskManager::nextDeskId(bool cycle) {
     return nextId;
 }
 
+std::shared_ptr<VirtualDesk> VirtualDeskManager::getOrCreateVdesk(int vdeskId) {
+    if (!vdeskNamesMap.contains(vdeskId))
+        vdeskNamesMap[vdeskId] = std::to_string(vdeskId);
+    if (!vdesksMap.contains(vdeskId)) {
+        if (isVerbose())
+            printLog("creating new vdesk with id " + std::to_string(vdeskId));
+        auto vdesk = vdesksMap[vdeskId] = std::make_shared<VirtualDesk>(vdeskId, vdeskNamesMap[vdeskId]);
+        return vdesk;
+    }
+    return vdesksMap[vdeskId];
+}
+
 void VirtualDeskManager::invalidateAllLayouts() {
     for (const auto& [_, vdesk] : vdesksMap) {
         vdesk->invalidateActiveLayout();
@@ -281,9 +284,9 @@ CMonitor* VirtualDeskManager::getCurrentMonitor() {
     CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
-    if (currentMonitor && !currentMonitor->m_bEnabled) {
+    if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
         for (std::shared_ptr<CMonitor> mon : g_pCompositor->m_vMonitors) {
-            if (mon->m_bEnabled)
+            if (mon->m_bEnabled && mon->output)
                 return mon.get();
         }
         return nullptr;

@@ -39,6 +39,7 @@ class VirtualDesk {
     void                             deleteInvalidMonitorsOnActiveLayout();
     void                             deleteInvalidMonitorOnAllLayouts(const CMonitor*);
     static std::shared_ptr<CMonitor> firstAvailableMonitor(const std::vector<std::shared_ptr<CMonitor>>&);
+    bool                             isWorkspaceOnActiveLayout(int workspaceId);
 
   private:
     int                m_activeLayout_idx;

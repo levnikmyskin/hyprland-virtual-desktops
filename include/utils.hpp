@@ -13,7 +13,10 @@ const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspa
 const std::string REMEMBER_LAYOUT_CONF   = "plugin:virtual-desktops:rememberlayout";
 const std::string NOTIFY_INIT            = "plugin:virtual-desktops:notifyinit";
 const std::string VERBOSE_LOGS           = "plugin:virtual-desktops:verbose_logging";
-const std::string VDESK_DISPATCH_STR     = "vdesk";
+
+const std::string STICKY_RULES_KEYW = "stickyrule";
+
+const std::string VDESK_DISPATCH_STR = "vdesk";
 
 const std::string MOVETODESK_DISPATCH_STR     = "movetodesk";
 const std::string MOVETOLASTDESK_DISPATCH_STR = "movetolastdesk";
@@ -51,6 +54,10 @@ void                                   printLog(std::string s, LogLevel level = 
 std::string                            parseMoveDispatch(std::string& arg);
 bool                                   extractBool(std::string& arg);
 std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
+
+std::string                            ltrim(const std::string& s);
+std::string                            rtrim(const std::string& s);
+std::string                            trim(const std::string& s);
 
 bool                                   isVerbose();
 #endif
