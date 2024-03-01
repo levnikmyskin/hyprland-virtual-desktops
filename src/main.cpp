@@ -132,34 +132,50 @@ void moveToNextDeskSilentDispatch(std::string arg) {
     manager->moveToDesk(arg, manager->nextDeskId(cycle));
 }
 
-void printVdesk(int vdeskId) {
-    printLog("VDesk " + std::to_string(vdeskId) + ": " + manager->vdeskNamesMap[vdeskId]);
-}
+std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
+    static auto* const PVDESKNAMESCONF = (Hyprlang::STRING const*)(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF))->getDataStaticPtr();
 
-void printVdesk(std::string name) {
-    for (auto const& [key, val] : manager->vdeskNamesMap) {
-        if (val == name) {
-            printLog("Vdesk " + std::to_string(key) + ": " + val);
-            return;
-        }
-    }
-}
+    auto               vdeskNamesConf = std::string{*PVDESKNAMESCONF};
+    parseNamesConf(vdeskNamesConf);
 
-void printVDeskDispatch(std::string arg) {
-    std::string vdesknamesConf = std::any_cast<Hyprlang::STRING>(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF));
+    arg.erase(0, PRINTDESK_DISPATCH_STR.length());
+    printLog(std::format("Got {}", arg));
 
-    parseNamesConf(vdesknamesConf);
-
-    if (arg.length() == 0) {
-        printVdesk(manager->activeVdesk()->id);
-    } else
+    int         vdeskId;
+    std::string vdeskName;
+    if (arg.length() > 0) {
+        arg = arg.erase(0, 1); // delete whitespace
+        printLog(std::format("Got {}", arg));
         try {
             // maybe id
-            printVdesk(std::stoi(arg));
+            vdeskId   = std::stoi(arg);
+            vdeskName = manager->vdeskNamesMap.at(vdeskId);
         } catch (std::exception const& ex) {
             // by name then
-            printVdesk(arg);
+            vdeskId = manager->getDeskIdFromName(arg, false);
+            if (vdeskId < 0)
+                vdeskName = "not found";
+            else
+                vdeskName = manager->vdeskNamesMap[vdeskId];
         }
+    } else {
+        vdeskId   = manager->activeVdesk()->id;
+        vdeskName = manager->activeVdesk()->name;
+    }
+
+    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+        return std::format("Virtual desk {}: {}", vdeskId, vdeskName);
+
+    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+        return std::format(R"#({{
+            "virtualdesk": {{
+                "id": {},
+                "name": "{}"
+            }}
+        }})#",
+                           vdeskId, vdeskName);
+    }
+    return "";
 }
 
 std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
@@ -270,12 +286,22 @@ void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
 
 void registerHyprctlCommands() {
     SHyprCtlCommand cmd;
+
+    // Register printlayout
     cmd.name  = PRINTLAYOUT_DISPATCH_STR;
     cmd.fn    = printLayoutDispatch;
     cmd.exact = true;
     auto ptr  = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
+
+    // Register printdesk
+    cmd.name  = PRINTDESK_DISPATCH_STR;
+    cmd.fn    = printVDeskDispatch;
+    cmd.exact = false;
+    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    if (!ptr)
+        printLog(std::format("Failed to register hyprctl command: {}", VDESK_DISPATCH_STR));
 }
 
 // Do NOT change this function.
@@ -304,7 +330,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addDispatcher(PHANDLE, MOVETONEXTDESKSILENT_DISPATCH_STR, moveToNextDeskSilentDispatch);
 
     HyprlandAPI::addDispatcher(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, PRINTDESK_DISPATCH_STR, printVDeskDispatch);
 
     // Configs
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, Hyprlang::STRING{"unset"});
