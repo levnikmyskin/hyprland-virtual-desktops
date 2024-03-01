@@ -227,7 +227,7 @@ Once compiled, you can tell Hyprland to load the plugin as described in the [Hyp
 
 ### Installing on NixOS with home—manager
 
-Here is an example flake that you can use to add hyprland-virtual-desktops to your configuration
+Here is an example flake that you can modify to add hyprland-virtual-desktops to your configuration
 ```nix
 # flake.nix
 
