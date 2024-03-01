@@ -51,11 +51,11 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
 }
 
 bool isVerbose() {
-    static auto* const PVERBOSELOGS = &HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->intValue;
+    static auto* const PVERBOSELOGS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->getDataStaticPtr();
     // this might happen if called before plugin is initalized
     if (!PVERBOSELOGS)
         return true;
-    return *PVERBOSELOGS;
+    return **PVERBOSELOGS;
 }
 
 std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude) {

@@ -112,10 +112,23 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
 
-    auto vdesk = getOrCreateVdesk(vdeskId);
+    auto  vdesk = getOrCreateVdesk(vdeskId);
 
-    // just take the first workspace wherever in the layout
-    auto        wid = vdesk->activeLayout(conf).begin()->second;
+    auto* window = g_pCompositor->getWindowByRegex(arg);
+    if (!window) {
+        printLog(std::format("Window {} does not exist???", arg), LogLevel::ERR);
+        return vdeskId;
+    }
+
+    // take the first workspace wherever in the layout
+    // and later go for the workspace which is on the same monitor
+    // of the window
+    auto wid = vdesk->activeLayout(conf).begin()->second;
+    for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
+        if (mon->ID == window->m_iMonitorID) {
+            wid = workspace;
+        }
+    }
 
     std::string moveCmd;
     if (arg == "") {
@@ -154,14 +167,14 @@ void VirtualDeskManager::loadLayoutConf() {
     // Maybe in a future release :)
     if (confLoaded)
         return;
-    static auto* const PREMEMBER_LAYOUT = &HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->strValue;
+    static auto* const PREMEMBER_LAYOUT = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->getDataStaticPtr();
     conf                                = layoutConfFromString(*PREMEMBER_LAYOUT);
     confLoaded                          = true;
 }
 
 void VirtualDeskManager::cycleWorkspaces() {
-    static auto* const PCYCLEWORKSPACES = &HyprlandAPI::getConfigValue(PHANDLE, CYCLEWORKSPACES_CONF)->intValue;
-    if (!*PCYCLEWORKSPACES)
+    static auto* const PCYCLEWORKSPACES = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLEWORKSPACES_CONF)->getDataStaticPtr();
+    if (!**PCYCLEWORKSPACES)
         return;
 
     auto      n_monitors     = g_pCompositor->m_vMonitors.size();
