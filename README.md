@@ -22,6 +22,7 @@
     - [Choosing how to remember, or choosing to forget](#choosing-how-to-remember-or-choosing-to-forget)
       - [Example](#example-2)
   - [Install](#install)
+    - [Installing on NixOS with home—manager](#installing-on-nixos-with-homemanager)
   - [Help, Hyprland is being weird!](#help-hyprland-is-being-weird)
     - [It's actually the plugin 😱](#its-actually-the-plugin-)
   - [Thanks to](#thanks-to)
@@ -222,6 +223,86 @@ this will compile and copy the compiled `.so` plugin in the `$HOME/.local/share/
 You can also use `make virtual-desktops.so` to output the compiled plugin in the repo directory.
 
 Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
+
+
+### Installing on NixOS with home—manager
+
+Here is an example flake that you can modify to add hyprland-virtual-desktops to your configuration
+```nix
+# flake.nix
+
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+   
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      follows = "hyprland-virtual-desktops/hyprland"; # To make sure we run the same version of hyprland that the plugin was built against
+    };
+    hyprland-virtual-desktops.url = "github:wiillou/hyprland-virtual-desktops";
+    
+  };
+
+  outputs = { nixpkgs, home-manager, hyprland, hyprland-virtual-desktops, ... }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      homeConfigurations."user@hostname" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+
+        # You can optionally move this module to its own .nix file and source it
+        # here if you want to modularise your configuration
+        modules = [
+          hyprland.homeManagerModules.default
+          {
+            wayland.windowManager.hyprland = {
+              enable = true;
+              package = hyprland.packages.${pkgs.system}.hyprland;
+              plugins = [
+                hyprland-virtual-desktops.packages.${pkgs.system}.virtual-desktops
+              ];
+              # extraConfig is a string that becomes hyprland.conf
+              extraConfig = ''
+                stickyrule = class:^(kittysticky)$,3
+                stickyrule = title:thunderbird,mail
+
+                plugin {
+                    virtual-desktops {
+                        names = 1:coding, 2:internet, 3:mail and chats 
+                        cycleworkspaces = 1
+                        rememberlayout = size
+                        notifyinit = 0
+                        verbose_logging = 0
+                    }
+                }
+              '' + ''
+                # your other configuration for hyprland
+              '';
+            };
+          }
+          # ...
+          # NOTE:
+          # You will want to enable the Hyprland module in your NixOS configuration
+          # too, since that also enables critical components like xdg-desktop-portal,
+          # xwayland, polkit, etc
+          # 
+          # # Have this somewhere in your NixOS configuration
+          # programs.hyprland = {
+          #   enabled = true;
+          #   package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+          # };
+        ];
+      };
+    };
+}
+```
 
 ## Help, Hyprland is being weird!
 I've noticed that, sometimes, when disconnecting or reconnecting monitors, there might be weird artifacts or similar. Try running:  
