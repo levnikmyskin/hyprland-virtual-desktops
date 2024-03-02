@@ -32,7 +32,7 @@
 
         installPhase = ''
           mkdir -p $out/lib
-          cp virtual-desktops.so $out/lib/
+          cp virtual-desktops.so $out/lib/libvirtual-desktops.so
         '';
 
         meta = with pkgs.lib; {
