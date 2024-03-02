@@ -239,14 +239,13 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
+   
     hyprland = {
       url = "github:hyprwm/Hyprland";
-      follows = "hyprland-virtual-desktops"; # We make sure we use the version that is known to be compatable with hyprland-virtual-desktops
+      follows = "hyprland-virtual-desktops/hyprland"; # To make sure we run the same version of hyprland that the plugin was built against
     };
-
-    hyprland-virtual-desktops.url = "github:levnikmyskin/hyprland-virtual-desktops";
-        
+    hyprland-virtual-desktops.url = "github:wiillou/hyprland-virtual-desktops";
+    
   };
 
   outputs = { nixpkgs, home-manager, hyprland, hyprland-virtual-desktops, ... }:
@@ -265,7 +264,7 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
           {
             wayland.windowManager.hyprland = {
               enable = true;
-              package = hyprland.packages."${pkgs.system}".hyprland;
+              package = hyprland.packages.${pkgs.system}.hyprland;
               plugins = [
                 hyprland-virtual-desktops.packages.${pkgs.system}.virtual-desktops
               ];
@@ -293,6 +292,12 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
           # You will want to enable the Hyprland module in your NixOS configuration
           # too, since that also enables critical components like xdg-desktop-portal,
           # xwayland, polkit, etc
+          # 
+          # # Have this somewhere in your NixOS configuration
+          # programs.hyprland = {
+          #   enabled = true;
+          #   package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+          # };
         ];
       };
     };
