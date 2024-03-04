@@ -12,9 +12,6 @@
         pname = "virtual-desktops";
         version = "2.2.0";
         src = ./.;
-
-        buildFlags = [ "-shared" "-g" "-fPIC" "--no-gnu-unique" "-std=c++23" "-Wall" ];
-        buildFlagsArray = buildFlags ++ [ "-Iinclude" "-DWLR_USE_UNSTABLE" ];
         
         inherit (hyprland.packages.${system}.hyprland) nativeBuildInputs;
 
