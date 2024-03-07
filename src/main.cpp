@@ -28,12 +28,12 @@ bool                                 notifiedInit          = false;
 bool                                 needsReloading        = false;
 bool                                 monitorLayoutChanging = false;
 
-typedef void                         (*origMonitorDestroy)(void*, void*);
+typedef void (*origMonitorDestroy)(void*, void*);
 
-inline CFunctionHook*                g_pMonitorAdded = nullptr;
-typedef void                         (*origMonitorAdded)(void*, void*);
+inline CFunctionHook* g_pMonitorAdded = nullptr;
+typedef void (*origMonitorAdded)(void*, void*);
 
-void                                 parseNamesConf(std::string& conf) {
+void parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -241,7 +241,8 @@ void onWindowOpen(void*, SCallbackInfo&, std::any val) {
 }
 
 void onMonitorDisconnect(void*, SCallbackInfo&, std::any val) {
-    CMonitor* monitor = std::any_cast<CMonitor*>(val);
+    monitorLayoutChanging = true;
+    CMonitor* monitor     = std::any_cast<CMonitor*>(val);
     if (isVerbose())
         printLog("Monitor disconnect called with disabled monitor " + monitor->szName);
     if (currentlyEnabledMonitors(monitor).size() > 0) {
@@ -252,9 +253,11 @@ void onMonitorDisconnect(void*, SCallbackInfo&, std::any val) {
 }
 
 void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
-    CMonitor* monitor = std::any_cast<CMonitor*>(val);
+    monitorLayoutChanging = true;
+    CMonitor* monitor     = std::any_cast<CMonitor*>(val);
     if (monitor->szName == std::string("HEADLESS-1")) {
-        needsReloading = false;
+        needsReloading        = false;
+        monitorLayoutChanging = false;
         return;
     }
     manager->invalidateAllLayouts();
@@ -268,7 +271,8 @@ void onRender(void*, SCallbackInfo&, std::any val) {
         printLog("on render called and needs reloading");
         manager->applyCurrentVDesk();
         StickyApps::matchRules(stickyRules, manager);
-        needsReloading = false;
+        needsReloading        = false;
+        monitorLayoutChanging = false;
     }
 }
 
