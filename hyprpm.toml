@@ -2,10 +2,13 @@
 name = "virtual-desktops"
 authors = ["LevMyskin"]
 commit_pins = [
+    # Hyprland v0.34
     ["03ebbe18ed8517ee22591eac82cd54322f42cb7d", "04ebef1386344b835ad4e33edeb8b97c127d9624"],
     ["03ebbe18ed8517ee22591eac82cd54322f42cb7d", "cccba497c820c3735d8bbdf591f1515b74f17924"],
-    ["1c460e98f870676b15871fe4e5bfeb1a32a3d6d8", "9010a4a296eaffe3d5a52e1f5bd58bb1d6aa6f19"],
-    ["1c460e98f870676b15871fe4e5bfeb1a32a3d6d8", "84fcfc84b8b6e20ad06046babe3622f6cfed11f5"]
+    # Hyprland v0.35
+    ["84ab8d11e8951a6551d1e1bf87796a8589da6d47", "c55bcdddcd299f1f7a819193fed62cfa2c64fec7"],
+    # Hyprland v0.36
+    ["1c460e98f870676b15871fe4e5bfeb1a32a3d6d8", "423f2b7377cccfd789f8685d1ea1bbc205bb46a0"]
 ]
 
 
