@@ -2,7 +2,7 @@
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/helpers/MiscFunctions.hpp>
-#include <hyprland/src/helpers/Workspace.hpp>
+#include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/events/Events.hpp>
 
@@ -12,8 +12,6 @@
 #include "sticky_apps.hpp"
 
 #include <any>
-#include <iostream>
-#include <sstream>
 #include <vector>
 
 static HOOK_CALLBACK_FN*             onWorkspaceChangeHook   = nullptr;
