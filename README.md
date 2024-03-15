@@ -244,7 +244,7 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
       url = "github:hyprwm/Hyprland";
       follows = "hyprland-virtual-desktops/hyprland"; # To make sure we run the same version of hyprland that the plugin was built against
     };
-    hyprland-virtual-desktops.url = "github:wiillou/hyprland-virtual-desktops";
+    hyprland-virtual-desktops.url = "github:levnikmyskin/hyprland-virtual-desktops";
     
   };
 
