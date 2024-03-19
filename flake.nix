@@ -2,7 +2,7 @@
   description = "A plugin for the Hyprland compositor, implementing virtual-desktop functionality.";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.hyprland.url = "github:hyprwm/Hyprland/v0.36.0";
+  inputs.hyprland.url = "github:hyprwm/Hyprland/v0.37.0";
 
   outputs = { self, nixpkgs, hyprland }:
     let
