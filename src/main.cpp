@@ -216,10 +216,10 @@ void resetVDeskDispatch(std::string arg) {
 void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     if (monitorLayoutChanging)
         return;
-    CWorkspace* workspace   = std::any_cast<CWorkspace*>(val);
-    int         workspaceID = std::any_cast<CWorkspace*>(val)->m_iID;
+    PHLWORKSPACE workspace   = std::any_cast<PHLWORKSPACE>(val);
+    int          workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
 
-    auto        monitor = g_pCompositor->getMonitorFromID(workspace->m_iMonitorID);
+    auto         monitor = g_pCompositor->getMonitorFromID(workspace->m_iMonitorID);
     if (!monitor || !monitor->m_bEnabled)
         return;
 

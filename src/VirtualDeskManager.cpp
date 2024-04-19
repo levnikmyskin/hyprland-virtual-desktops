@@ -62,9 +62,9 @@ void VirtualDeskManager::applyCurrentVDesk() {
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (auto [lmon, workspaceId] : layout) {
         CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
-        if (!lmon || !lmon->m_bEnabled) {
+        if (!mon || !mon->m_bEnabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
-            mon = activeVdesk()->deleteInvalidMonitor(lmon);
+            mon = activeVdesk()->deleteInvalidMonitor(mon);
             // Big F, we can't do much here
             if (!mon) {
                 printLog("There is no enabled monitor at all. I give up :)");
