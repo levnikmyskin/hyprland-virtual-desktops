@@ -57,9 +57,9 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto        currentMonitor   = getCurrentMonitor();
-    auto        layout           = activeVdesk()->activeLayout(conf);
-    CWorkspace* focusedWorkspace = nullptr;
+    auto         currentMonitor   = getCurrentMonitor();
+    auto         layout           = activeVdesk()->activeLayout(conf);
+    PHLWORKSPACE focusedWorkspace = nullptr;
     for (auto [lmon, workspaceId] : layout) {
         CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
         if (!lmon || !lmon->m_bEnabled) {
@@ -71,7 +71,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
                 return;
             }
         }
-        CWorkspace* workspace = g_pCompositor->getWorkspaceByID(workspaceId);
+        PHLWORKSPACE workspace = g_pCompositor->getWorkspaceByID(workspaceId);
         if (!workspace) {
             printLog("Creating workspace " + std::to_string(workspaceId));
             workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->ID);
@@ -188,8 +188,8 @@ void VirtualDeskManager::cycleWorkspaces() {
         auto otherMon = g_pCompositor->m_vMonitors[other].get();
         g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
 
-        auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspace);
-        auto otherWorkspace   = g_pCompositor->getWorkspaceByID(otherMon->activeWorkspace);
+        auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspaceID());
+        auto otherWorkspace   = g_pCompositor->getWorkspaceByID(otherMon->activeWorkspaceID());
         activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_iID, currentMonitor);
         activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_iID, otherMon);
     } else if (n_monitors > 2) {
