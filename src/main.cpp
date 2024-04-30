@@ -14,9 +14,9 @@
 #include <any>
 #include <vector>
 
-static HOOK_CALLBACK_FN*             onWorkspaceChangeHook = nullptr;
-static HOOK_CALLBACK_FN*             onWindowOpenHook      = nullptr;
-static HOOK_CALLBACK_FN*             onConfigReloadedHook  = nullptr;
+static std::shared_ptr<HOOK_CALLBACK_FN>             onWorkspaceChangeHook = nullptr;
+static std::shared_ptr<HOOK_CALLBACK_FN>             onWindowOpenHook      = nullptr;
+static std::shared_ptr<HOOK_CALLBACK_FN>             onConfigReloadedHook  = nullptr;
 
 inline CFunctionHook*                g_pMonitorConnectHook    = nullptr;
 inline CFunctionHook*                g_pMonitorDisconnectHook = nullptr;
@@ -229,7 +229,7 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 }
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
-    CWindow* window = std::any_cast<CWindow*>(val);
+    PHLWINDOW window = std::any_cast<PHLWINDOW>(val);
     int      vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);

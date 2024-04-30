@@ -29,7 +29,7 @@ bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
 
 void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     for (auto& r : rules) {
-        for (auto& w : g_pCompositor->m_vWindows) {
+        for (auto w : g_pCompositor->m_vWindows) {
             auto windowProp = extractProperty(r, w);
             if (windowProp == "")
                 continue;
@@ -45,7 +45,7 @@ void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_p
     }
 }
 
-int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager, CWindow* window) {
+int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager, PHLWINDOW window) {
     for (auto& r : rules) {
         auto windowProp = extractProperty(r, window);
         if (windowProp == "")
@@ -63,20 +63,7 @@ int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::un
     return -1;
 }
 
-const std::string StickyApps::extractProperty(const SStickyRule& rule, std::unique_ptr<CWindow>& window) {
-    if (rule.property == TITLE) {
-        return g_pXWaylandManager->getTitle(window.get());
-    } else if (rule.property == INITIAL_TITLE) {
-        return window->m_szInitialTitle;
-    } else if (rule.property == CLASS) {
-        return g_pXWaylandManager->getAppIDClass(window.get());
-    } else if (rule.property == INITIAL_CLASS) {
-        return window->m_szInitialClass;
-    }
-    return "";
-}
-
-const std::string StickyApps::extractProperty(const SStickyRule& rule, CWindow* window) {
+const std::string StickyApps::extractProperty(const SStickyRule& rule, PHLWINDOW window) {
     if (rule.property == TITLE) {
         return g_pXWaylandManager->getTitle(window);
     } else if (rule.property == INITIAL_TITLE) {

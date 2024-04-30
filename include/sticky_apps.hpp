@@ -4,6 +4,7 @@
 #define STICKYAPPS_H
 #include <string>
 #include <VirtualDeskManager.hpp>
+#include <hyprland/src/defines.hpp>
 
 const std::string TITLE         = "title";
 const std::string INITIAL_TITLE = "initialTitle";
@@ -23,10 +24,9 @@ namespace StickyApps {
 
     void              matchRules(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&);
 
-    int               matchRuleOnWindow(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&, CWindow*);
+    int               matchRuleOnWindow(const std::vector<SStickyRule>&, std::unique_ptr<VirtualDeskManager>&, PHLWINDOW);
 
-    const std::string extractProperty(const SStickyRule&, std::unique_ptr<CWindow>&);
-    const std::string extractProperty(const SStickyRule&, CWindow*);
+    const std::string extractProperty(const SStickyRule&, PHLWINDOW);
 
     bool              ruleMatch(const std::string&, const std::string&);
 }
