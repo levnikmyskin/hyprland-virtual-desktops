@@ -22,6 +22,8 @@ commit_pins = [
     ["e93fbd7c4f991cb8ef03e433ccc4d43587923e15", "2a90d57bdfdee1a153fd321bc2da0924b8409c3b"],
     # Hyprland v0.39.1
     ["fe7b748eb668136dd0558b7c8279bfcd7ab4d759", "2a90d57bdfdee1a153fd321bc2da0924b8409c3b"],
+    # Hyprland v0.40.0
+    ["cba1ade848feac44b2eda677503900639581c3f4", "e3bad3b9ab3dac25ad77641a2037601035125535"],
 ]
 
 
