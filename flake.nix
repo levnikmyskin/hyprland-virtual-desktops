@@ -2,13 +2,13 @@
   description = "A plugin for the Hyprland compositor, implementing virtual-desktop functionality.";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.hyprland.url = "github:hyprwm/Hyprland/v0.40.0";
+  inputs.hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1&ref=refs/tags/v0.40.0";
 
   outputs = { self, nixpkgs, hyprland }:
     let
       # Helper function to create packages for each system
       withPkgsFor = fn: nixpkgs.lib.genAttrs (builtins.attrNames hyprland.packages) (system: fn system nixpkgs.legacyPackages.${system});
-      virtualDesktops = withPkgsFor (system: pkgs: pkgs.gcc13Stdenv.mkDerivation rec {
+      virtualDesktops = withPkgsFor (system: pkgs: pkgs.gcc13Stdenv.mkDerivation {
         pname = "virtual-desktops";
         version = "2.2.2";
         src = ./.;
