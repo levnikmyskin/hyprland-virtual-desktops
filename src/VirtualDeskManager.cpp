@@ -114,7 +114,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
 
     auto  vdesk = getOrCreateVdesk(vdeskId);
 
-    auto* window = g_pCompositor->getWindowByRegex(arg);
+    PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
     if (!window) {
         printLog(std::format("Window {} does not exist???", arg), LogLevel::ERR);
         return vdeskId;
