@@ -161,6 +161,17 @@ int VirtualDeskManager::getDeskIdFromName(const std::string& name, bool createIf
     return vdesk;
 }
 
+int VirtualDeskManager::getDeskIdForWorkspace(int workspaceId) {
+    for (auto const& [vdeskId, vdesk] : vdesksMap) {
+        for(auto const& layout : vdesk->layouts) {
+            for(auto const& [mon, workspace] : layout) {
+                if (workspace == workspaceId) return vdeskId;
+            }
+        }
+    }
+    return -1;
+}
+
 void VirtualDeskManager::loadLayoutConf() {
     // Having the possibility to change this at any given time
     // poses just too many issues to think about for now.
@@ -292,4 +303,22 @@ CMonitor* VirtualDeskManager::getCurrentMonitor() {
         return nullptr;
     }
     return currentMonitor;
+}
+void VirtualDeskManager::moveWindowToDesk(const PHLWINDOW window, int newVdeskId) {
+    // delete window from another vdesk should it be associated to any other
+    removeWindow(window);
+
+    auto val = &vdeskWindowsMap[newVdeskId];
+    if (!val) vdeskWindowsMap[newVdeskId] = std::vector<PHLWINDOW>(1, window);
+    else val->push_back(window);
+}
+
+void VirtualDeskManager::removeWindow(PHLWINDOW window) {
+    for(auto& [vdeskId, windows] : vdeskWindowsMap) {
+        auto it = std::find(windows.begin(), windows.end(), window);
+        if (it != windows.end()) {
+            windows.erase(it);
+            return;
+        }
+    }
 }

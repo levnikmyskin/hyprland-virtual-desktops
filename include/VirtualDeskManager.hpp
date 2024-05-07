@@ -10,6 +10,7 @@ class VirtualDeskManager {
   public:
     VirtualDeskManager();
     std::unordered_map<int, std::shared_ptr<VirtualDesk>> vdesksMap;
+    std::unordered_map<int, std::vector<PHLWINDOW>>       vdeskWindowsMap;
     int                                                   lastDesk      = -1;
     std::unordered_map<int, std::string>                  vdeskNamesMap = {{1, "1"}};
     RememberLayoutConf                                    conf;
@@ -30,6 +31,9 @@ class VirtualDeskManager {
     int                                                   prevDeskId(bool backwardCycle);
     int                                                   nextDeskId(bool cycle);
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
+    int                                                   getDeskIdForWorkspace(int workspaceId);
+    void                                                  moveWindowToDesk(PHLWINDOW window, int vdeskId);
+    void                                                  removeWindow(PHLWINDOW window);
 
   private:
     int                          m_activeDeskKey = 1;
