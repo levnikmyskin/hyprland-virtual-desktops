@@ -11,6 +11,7 @@
 #include "globals.hpp"
 #include "utils.hpp"
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 
 typedef std::unordered_map<int, int>             WorkspaceMap;
 typedef std::unordered_map<const CMonitor*, int> Layout;
@@ -25,21 +26,21 @@ typedef std::string                              MonitorName;
 class VirtualDesk {
   public:
     VirtualDesk(int id = 1, std::string name = "1");
-    int                              id;
-    std::string                      name;
-    std::vector<Layout>              layouts;
+    int                             id;
+    std::string                     name;
+    std::vector<Layout>             layouts;
 
-    const Layout&                    activeLayout(const RememberLayoutConf&, const CMonitor* exclude = nullptr);
-    Layout&                          searchActiveLayout(const RememberLayoutConf&, const CMonitor* exclude = nullptr);
-    std::unordered_set<std::string>  setFromMonitors(const std::vector<std::shared_ptr<CMonitor>>&);
-    void                             changeWorkspaceOnMonitor(int, CMonitor*);
-    void                             invalidateActiveLayout();
-    void                             resetLayout();
-    CMonitor*                        deleteInvalidMonitor(const CMonitor*);
-    void                             deleteInvalidMonitorsOnActiveLayout();
-    void                             deleteInvalidMonitorOnAllLayouts(const CMonitor*);
-    static std::shared_ptr<CMonitor> firstAvailableMonitor(const std::vector<std::shared_ptr<CMonitor>>&);
-    bool                             isWorkspaceOnActiveLayout(int workspaceId);
+    const Layout&                   activeLayout(const RememberLayoutConf&, const CMonitor* exclude = nullptr);
+    Layout&                         searchActiveLayout(const RememberLayoutConf&, const CMonitor* exclude = nullptr);
+    std::unordered_set<std::string> setFromMonitors(const std::vector<CSharedPointer<CMonitor>>&);
+    void                            changeWorkspaceOnMonitor(int, CMonitor*);
+    void                            invalidateActiveLayout();
+    void                            resetLayout();
+    CMonitor*                       deleteInvalidMonitor(const CMonitor*);
+    void                            deleteInvalidMonitorsOnActiveLayout();
+    void                            deleteInvalidMonitorOnAllLayouts(const CMonitor*);
+    static CSharedPointer<CMonitor> firstAvailableMonitor(const std::vector<CSharedPointer<CMonitor>>&);
+    bool                            isWorkspaceOnActiveLayout(int workspaceId);
 
   private:
     int                m_activeLayout_idx;

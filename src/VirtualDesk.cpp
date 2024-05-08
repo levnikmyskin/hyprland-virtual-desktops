@@ -117,9 +117,9 @@ void VirtualDesk::deleteInvalidMonitorsOnActiveLayout() {
     }
 }
 
-std::shared_ptr<CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<std::shared_ptr<CMonitor>>& enabledMonitors) {
-    int                       n = INT_MAX;
-    std::shared_ptr<CMonitor> newMonitor;
+CSharedPointer<CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<CSharedPointer<CMonitor>>& enabledMonitors) {
+    int                      n = INT_MAX;
+    CSharedPointer<CMonitor> newMonitor;
     for (auto mon : currentlyEnabledMonitors()) {
         auto n_on_mon = g_pCompositor->getWindowsOnWorkspace(mon->activeWorkspaceID());
         if (n_on_mon < n) {
@@ -160,7 +160,7 @@ void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CMonitor* exclude) {
     }
 }
 
-std::unordered_set<std::string> VirtualDesk::setFromMonitors(const std::vector<std::shared_ptr<CMonitor>>& monitors) {
+std::unordered_set<std::string> VirtualDesk::setFromMonitors(const std::vector<CSharedPointer<CMonitor>>& monitors) {
     std::unordered_set<std::string> set;
     std::transform(monitors.begin(), monitors.end(), std::inserter(set, set.begin()), [](auto mon) { return monitorDesc(mon.get()); });
     return set;

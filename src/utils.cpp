@@ -58,8 +58,8 @@ bool isVerbose() {
     return **PVERBOSELOGS;
 }
 
-std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude) {
-    std::vector<std::shared_ptr<CMonitor>> monitors;
+std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude) {
+    std::vector<CSharedPointer<CMonitor>> monitors;
     std::copy_if(g_pCompositor->m_vMonitors.begin(), g_pCompositor->m_vMonitors.end(), std::back_inserter(monitors), [&](auto mon) {
         if (g_pCompositor->m_pUnsafeOutput && g_pCompositor->m_pUnsafeOutput->szName == mon->szName)
             return false;

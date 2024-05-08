@@ -112,7 +112,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
 
-    auto  vdesk = getOrCreateVdesk(vdeskId);
+    auto      vdesk = getOrCreateVdesk(vdeskId);
 
     PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
     if (!window) {
@@ -285,7 +285,7 @@ CMonitor* VirtualDeskManager::getCurrentMonitor() {
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
-        for (std::shared_ptr<CMonitor> mon : g_pCompositor->m_vMonitors) {
+        for (auto mon : g_pCompositor->m_vMonitors) {
             if (mon->m_bEnabled && mon->output)
                 return mon.get();
         }

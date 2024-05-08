@@ -5,6 +5,7 @@
 #include <hyprland/src/debug/Log.hpp>
 #include "globals.hpp"
 #include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
 
@@ -48,17 +49,17 @@ enum RememberLayoutConf {
     monitors = 2
 };
 
-RememberLayoutConf                     layoutConfFromInt(const int64_t);
-RememberLayoutConf                     layoutConfFromString(const std::string& conf);
-void                                   printLog(std::string s, LogLevel level = INFO);
+RememberLayoutConf                    layoutConfFromInt(const int64_t);
+RememberLayoutConf                    layoutConfFromString(const std::string& conf);
+void                                  printLog(std::string s, LogLevel level = INFO);
 
-std::string                            parseMoveDispatch(std::string& arg);
-bool                                   extractBool(std::string& arg);
-std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
+std::string                           parseMoveDispatch(std::string& arg);
+bool                                  extractBool(std::string& arg);
+std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
 
-std::string                            ltrim(const std::string& s);
-std::string                            rtrim(const std::string& s);
-std::string                            trim(const std::string& s);
+std::string                           ltrim(const std::string& s);
+std::string                           rtrim(const std::string& s);
+std::string                           trim(const std::string& s);
 
-bool                                   isVerbose();
+bool                                  isVerbose();
 #endif

@@ -5,6 +5,7 @@
 #include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/events/Events.hpp>
+#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -14,21 +15,21 @@
 #include <any>
 #include <vector>
 
-static std::shared_ptr<HOOK_CALLBACK_FN>             onWorkspaceChangeHook = nullptr;
-static std::shared_ptr<HOOK_CALLBACK_FN>             onWindowOpenHook      = nullptr;
-static std::shared_ptr<HOOK_CALLBACK_FN>             onConfigReloadedHook  = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook      = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook  = nullptr;
 
-inline CFunctionHook*                g_pMonitorConnectHook    = nullptr;
-inline CFunctionHook*                g_pMonitorDisconnectHook = nullptr;
-typedef void                         (*origMonitorConnect)(void*, bool);
-typedef void                         (*origMonitorDisconnect)(void*, bool);
+inline CFunctionHook*                   g_pMonitorConnectHook    = nullptr;
+inline CFunctionHook*                   g_pMonitorDisconnectHook = nullptr;
+typedef void                            (*origMonitorConnect)(void*, bool);
+typedef void                            (*origMonitorDisconnect)(void*, bool);
 
-std::unique_ptr<VirtualDeskManager>  manager = std::make_unique<VirtualDeskManager>();
-std::vector<StickyApps::SStickyRule> stickyRules;
-bool                                 notifiedInit          = false;
-bool                                 monitorLayoutChanging = false;
+std::unique_ptr<VirtualDeskManager>     manager = std::make_unique<VirtualDeskManager>();
+std::vector<StickyApps::SStickyRule>    stickyRules;
+bool                                    notifiedInit          = false;
+bool                                    monitorLayoutChanging = false;
 
-void                                 parseNamesConf(std::string& conf) {
+void                                    parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -230,7 +231,7 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
     PHLWINDOW window = std::any_cast<PHLWINDOW>(val);
-    int      vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+    int       vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
 }
