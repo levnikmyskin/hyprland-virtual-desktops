@@ -17,8 +17,6 @@
 
 static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook      = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onWindowCloseHook     = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onWindowMoveHook      = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook  = nullptr;
 
 inline CFunctionHook*                   g_pMonitorConnectHook    = nullptr;
@@ -182,13 +180,25 @@ std::string printVDesksDispatch(eHyprCtlOutputFormat format, std::string arg) {
         out += "Virtual desks\n";
         int index = 0;
         for(auto const& [vdeskId, desk] : manager->vdesksMap) {
-            auto windows = manager->vdeskWindowsMap[vdeskId];
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& layout : desk->layouts) {
+                for(auto const& [monitor, workspaceId] : layout) {
+                    windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                    if(!first) workspaces += ", ";
+                    else first = false;
+                    workspaces += std::format("{}", workspaceId);
+                }
+            }
             out += std::format(
-                "- {}: {}\n  Windows: {}\n  Focused: {}\n",
+                "- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n",
                 desk->name,
                 desk->id,
-                windows.size(),
-                manager->activeVdesk().get() == desk.get()
+                manager->activeVdesk().get() == desk.get(),
+                windows > 0,
+                workspaces,
+                windows
             );
             if(index++ < manager->vdesksMap.size() - 1) out += "\n";
         }
@@ -196,13 +206,25 @@ std::string printVDesksDispatch(eHyprCtlOutputFormat format, std::string arg) {
         std::string vdesks;
         int index = 0;
         for(auto const& [vdeskId, desk] : manager->vdesksMap) {
-            auto windows = manager->vdeskWindowsMap[vdeskId];
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& layout : desk->layouts) {
+                for(auto const& [monitor, workspaceId] : layout) {
+                    windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                    if(!first) workspaces += ", ";
+                    else first = false;
+                    workspaces += std::format("{}", workspaceId);
+                }
+            }
             vdesks += std::format(R"#({{
                 "id": {},
                 "name": "{}",
                 "focused": {},
-                "populated": {}
-            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), !windows.empty());
+                "populated": {},
+                "workspaces": [{}],
+                "windows": {}
+            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
             if(index++ < manager->vdesksMap.size() - 1) vdesks += ",";
         }
         out += std::format(R"#([{}])#", vdesks);
@@ -270,26 +292,6 @@ void onWindowOpen(void*, SCallbackInfo&, std::any val) {
     int       vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
-
-    vdesk = manager->getDeskIdForWorkspace(window->workspaceID());
-    if (isVerbose())
-        printLog(std::format("Adding new window to vdesk {}", vdesk));
-    manager->moveWindowToDesk(window, vdesk);
-
-}
-
-void onWindowClose(void*, SCallbackInfo&, std::any val) {
-    PHLWINDOW window = std::any_cast<PHLWINDOW>(val);
-    manager->removeWindow(window);
-}
-
-void onWindowMove(void*, SCallbackInfo&, std::any val) {
-    auto args = std::any_cast<std::vector<std::any>>(val);
-    auto window = std::any_cast<PHLWINDOW>(args.at(0));
-    int vdesk = manager->getDeskIdForWorkspace(window->workspaceID());
-    if (isVerbose())
-        printLog(std::format("Moving window to vdesk {}", vdesk));
-    manager->moveWindowToDesk(window, vdesk);
 }
 
 void hookMonitorDisconnect(void* thisptr, bool destroy) {
@@ -402,8 +404,6 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     onWorkspaceChangeHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
     onWindowOpenHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "openWindow", onWindowOpen);
-    onWindowCloseHook     = HyprlandAPI::registerCallbackDynamic(PHANDLE, "closeWindow", onWindowClose);
-    onWindowMoveHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "moveWindow", onWindowMove);
     onConfigReloadedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
 
     // Function hooks
