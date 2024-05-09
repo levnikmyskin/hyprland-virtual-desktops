@@ -179,21 +179,30 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
 std::string printVDesksDispatch(eHyprCtlOutputFormat format, std::string arg) {
     std::string out;
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
-        // TODO: Finish this print statement
-        out += std::format(R"#(Virtual desks
-        )#");
+        out += "Virtual desks\n";
+        int index = 0;
+        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+            auto windows = manager->vdeskWindowsMap[vdeskId];
+            out += std::format(
+                "- {}: {}\n  Windows: {}\n  Focused: {}\n",
+                desk->name,
+                desk->id,
+                windows.size(),
+                manager->activeVdesk().get() == desk.get()
+            );
+            if(index++ < manager->vdesksMap.size() - 1) out += "\n";
+        }
     } else if(format == eHyprCtlOutputFormat::FORMAT_JSON) {
         std::string vdesks;
         int index = 0;
         for(auto const& [vdeskId, desk] : manager->vdesksMap) {
             auto windows = manager->vdeskWindowsMap[vdeskId];
-            printLog(std::format("Windows: {}, desk: {}", windows.size(), vdeskId));
             vdesks += std::format(R"#({{
                 "id": {},
                 "name": "{}",
-                "active": {},
+                "focused": {},
                 "populated": {}
-            }})#", vdeskId, manager->activeVdesk().get() == desk.get(), windows.size() > 0, desk->name);
+            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), !windows.empty());
             if(index++ < manager->vdesksMap.size() - 1) vdesks += ",";
         }
         out += std::format(R"#([{}])#", vdesks);

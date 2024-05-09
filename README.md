@@ -116,6 +116,7 @@ Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, 
 | Command | description | args | example|
 |------------|-------------|------|--------|
 | printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see [above](#hyprctl-dispatchers) | `hyprctl printdesk` or `hyprctl printdesk 2` or `hyprctl printdesk coding`|
+| printdesks | Prints information about all vdesks | `none` | `hyprctl printdesks` |
 | printlayout | print to Hyprland logs the current layout | `none` | `hyprctl printlayout` |
 
 
