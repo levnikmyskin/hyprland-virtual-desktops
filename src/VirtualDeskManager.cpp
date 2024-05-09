@@ -189,7 +189,7 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto      n_monitors     = g_pCompositor->m_vMonitors.size();
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
+    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
@@ -292,7 +292,7 @@ void VirtualDeskManager::invalidateAllLayouts() {
 }
 
 CMonitor* VirtualDeskManager::getCurrentMonitor() {
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
+    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
