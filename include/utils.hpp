@@ -37,7 +37,7 @@ const std::string BACKCYCLE_DISPATCH_STR  = "backcyclevdesks";
 
 const std::string RESET_VDESK_DISPATCH_STR = "vdeskreset";
 const std::string PRINTDESK_DISPATCH_STR   = "printdesk";
-const std::string PRINTDESKS_DISPATCH_STR  = "printdesks";
+const std::string PRINTSTATE_DISPATCH_STR  = "printstate";
 const std::string PRINTLAYOUT_DISPATCH_STR = "printlayout";
 
 const std::string REMEMBER_NONE     = "none";
