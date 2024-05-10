@@ -174,6 +174,60 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return "";
 }
 
+std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
+    std::string out;
+    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+        out += "Virtual desks\n";
+        int index = 0;
+        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                if(!first) workspaces += ", ";
+                else first = false;
+                workspaces += std::format("{}", workspaceId);
+            }
+            out += std::format(
+                "- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n",
+                desk->name,
+                desk->id,
+                manager->activeVdesk().get() == desk.get(),
+                windows > 0,
+                workspaces,
+                windows
+            );
+            if(index++ < manager->vdesksMap.size() - 1) out += "\n";
+        }
+    } else if(format == eHyprCtlOutputFormat::FORMAT_JSON) {
+        std::string vdesks;
+        int index = 0;
+        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                if(!first) workspaces += ", ";
+                else first = false;
+                workspaces += std::format("{}", workspaceId);
+            }
+            vdesks += std::format(R"#({{
+                "id": {},
+                "name": "{}",
+                "focused": {},
+                "populated": {},
+                "workspaces": [{}],
+                "windows": {}
+            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
+            if(index++ < manager->vdesksMap.size() - 1) vdesks += ",";
+        }
+        out += std::format(R"#([{}])#", vdesks);
+    }
+    return out;
+}
+
 std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     auto        activeDesk = manager->activeVdesk();
     auto        layout     = activeDesk->activeLayout(manager->conf);
@@ -290,13 +344,21 @@ void registerHyprctlCommands() {
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
 
+    // Register printstate
+    cmd.name  = PRINTSTATE_DISPATCH_STR;
+    cmd.fn    = printStateDispatch;
+    cmd.exact = true;
+    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    if (!ptr)
+        printLog(std::format("Failed to register hyprctl command: {}", PRINTSTATE_DISPATCH_STR));
+
     // Register printdesk
     cmd.name  = PRINTDESK_DISPATCH_STR;
     cmd.fn    = printVDeskDispatch;
     cmd.exact = false;
     ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
     if (!ptr)
-        printLog(std::format("Failed to register hyprctl command: {}", VDESK_DISPATCH_STR));
+        printLog(std::format("Failed to register hyprctl command: {}", PRINTDESK_DISPATCH_STR));
 }
 
 // Do NOT change this function.

@@ -14,6 +14,7 @@
 #include <hyprland/src/helpers/memory/SharedPtr.hpp>
 
 typedef std::unordered_map<int, int>             WorkspaceMap;
+// map with CMonitor* -> hyprland workspace id
 typedef std::unordered_map<const CMonitor*, int> Layout;
 typedef std::string                              MonitorName;
 
