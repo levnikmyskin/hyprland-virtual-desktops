@@ -65,11 +65,11 @@ int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::un
 
 const std::string StickyApps::extractProperty(const SStickyRule& rule, PHLWINDOW window) {
     if (rule.property == TITLE) {
-        return g_pXWaylandManager->getTitle(window);
+        return window->m_szTitle;
     } else if (rule.property == INITIAL_TITLE) {
         return window->m_szInitialTitle;
     } else if (rule.property == CLASS) {
-        return g_pXWaylandManager->getAppIDClass(window);
+        return window->m_szClass;
     } else if (rule.property == INITIAL_CLASS) {
         return window->m_szInitialClass;
     }
