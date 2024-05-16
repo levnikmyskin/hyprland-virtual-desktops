@@ -45,6 +45,8 @@ jobs:
           make install
 
       - name: Build hyprland-virtual-desktops
+        env: 
+          PKG_CONFIG_PATH: "/usr/local/share/pkgconfig/"
         run: |
           make all
 
