@@ -89,7 +89,7 @@ runs:
       run: |
         git clone https://github.com/hyprwm/Hyprland.git --recursive
         cd Hyprland
-        git checkout ${{ github.event.inputs.branch }}
+        git checkout ${{ inputs.branch }} && git submodule update --recursive --init
 
     # Fix an issue with actions/checkout where the checkout repo is not mark as safe
     - name: Mark directory as safe for git
