@@ -90,7 +90,7 @@ runs:
         repository: hyprwm/Hyprland
         submodules: recursive
         path: Hyprland
-        ref: inputs.branch
+        ref: ${{ github.events.inputs.branch }}
 
     # Fix an issue with actions/checkout where the checkout repo is not mark as safe
     - name: Mark directory as safe for git
