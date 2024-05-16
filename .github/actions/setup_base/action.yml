@@ -10,6 +10,10 @@ inputs:
     description: 'Hyprland branch to checkout'
     required: false
     default: 'main'
+  hyprwayland:
+    description: 'Hyprwayland branch to checkout'
+    required: false
+    default: 'main'
 
 runs:
   using: "composite"
@@ -69,6 +73,7 @@ runs:
       run: |
         git clone https://github.com/hyprwm/hyprwayland-scanner --recursive
         cd hyprwayland-scanner
+        git checkout ${{ inputs.hyprwayland }} && git submodule update --recursive --init
         cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
         cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf NPROCESSORS_CONF`
         cmake --install build

@@ -29,6 +29,7 @@ jobs:
         with:
           INSTALL_XORG_PKGS: true
           branch: 'v0.40.0'
+          hyprwayland: 'v0.3.4'
 
       - name: Setup base on dev
         uses: ./.github/actions/setup_base
