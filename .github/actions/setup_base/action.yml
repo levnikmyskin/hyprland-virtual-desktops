@@ -28,6 +28,7 @@ runs:
           cairo \
           clang \
           cmake \
+          cpio \
           git \
           glm \
           glslang \
