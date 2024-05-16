@@ -1,0 +1,42 @@
+name: Build hyprland-virtual-desktops
+
+on: 
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  gcc_main:
+    name: "Build hyprland-virtual-desktops (main)"
+    runs-on: alpine-latest
+    container:
+      image: archlinux
+    steps:
+      - name: Checkout repository action
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+
+      - name: Setup base on main
+        uses: ./.github/actions/setup_base
+        if: github.ref == "refs/heads/main"
+        with:
+          INSTALL_XORG_PKGS: true
+          branch: "0.40.0"
+
+      - name: Setup base on dev
+        uses: ./.github/actions/setup_base
+        if: github.ref == "refs/heads/dev"
+        with:
+          INSTALL_XORG_PKGS: true
+          branch: "main"
+
+      - name: Build hyprland-virtual-desktops
+        run: |
+          make all
+
