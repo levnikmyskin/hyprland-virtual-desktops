@@ -12,7 +12,7 @@ on:
 
 jobs:
   gcc_main:
-    name: "Build hyprland-virtual-desktops (main)"
+    name: 'Build hyprland-virtual-desktops (main)'
     runs-on: alpine-latest
     container:
       image: archlinux
@@ -24,17 +24,17 @@ jobs:
 
       - name: Setup base on main
         uses: ./.github/actions/setup_base
-        if: github.ref == "refs/heads/main"
+        if: github.ref == 'refs/heads/main'|| github.base_ref == 'main'
         with:
           INSTALL_XORG_PKGS: true
-          branch: "0.40.0"
+          branch: '0.40.0'
 
       - name: Setup base on dev
         uses: ./.github/actions/setup_base
-        if: github.ref == "refs/heads/dev"
+        if: github.ref == 'refs/heads/dev'|| github.base_ref == 'dev'
         with:
           INSTALL_XORG_PKGS: true
-          branch: "main"
+          branch: 'main'
 
       - name: Build hyprland-virtual-desktops
         run: |
