@@ -84,14 +84,12 @@ runs:
           xorg-xkbcomp \
           xorg-xwayland
 
-    - name: Checkout Hyprland
-      uses: actions/checkout@v4
-      with:
-        repository: hyprwm/Hyprland
-        submodules: recursive
-        path: Hyprland
-        fetch-tags: true
-        ref: ${{ github.event.inputs.branch }}
+    - name: Get Hyprland
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/Hyprland.git --recursive
+        cd Hyprland
+        git checkout ${{ github.event.inputs.branch }}
 
     # Fix an issue with actions/checkout where the checkout repo is not mark as safe
     - name: Mark directory as safe for git
