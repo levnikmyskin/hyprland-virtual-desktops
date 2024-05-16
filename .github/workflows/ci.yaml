@@ -22,6 +22,7 @@ jobs:
         with:
           sparse-checkout: .github/actions
 
+
       - name: Setup base on main
         uses: ./.github/actions/setup_base
         if: github.ref == 'refs/heads/main'|| github.base_ref == 'main'
@@ -35,6 +36,13 @@ jobs:
         with:
           INSTALL_XORG_PKGS: true
           branch: 'main'
+
+      - name: Compile Hyprland
+        shell: bash
+        run: |
+          cd Hyprland
+          make all
+          make install
 
       - name: Build hyprland-virtual-desktops
         run: |
