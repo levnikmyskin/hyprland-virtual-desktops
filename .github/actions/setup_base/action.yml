@@ -97,10 +97,3 @@ runs:
       shell: bash
       run: |
         git config --global --add safe.directory /__w/Hyprland/Hyprland
-
-    - name: Compile Hyprland
-      shell: bash
-      run: |
-        cd Hyprland
-        make all
-        make install
