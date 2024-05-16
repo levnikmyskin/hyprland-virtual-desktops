@@ -28,7 +28,7 @@ jobs:
         if: github.ref == 'refs/heads/main'|| github.base_ref == 'main'
         with:
           INSTALL_XORG_PKGS: true
-          branch: '0.40.0'
+          branch: 'v0.40.0'
 
       - name: Setup base on dev
         uses: ./.github/actions/setup_base
