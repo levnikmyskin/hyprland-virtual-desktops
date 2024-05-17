@@ -1,6 +1,8 @@
 # Virtual desktops for Hyprland ![hyprico](.github/hyprland.ico)
 `virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.  
 
+Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:matrix.org)!
+
 ## Table of contents
 - [Virtual desktops for Hyprland ](#virtual-desktops-for-hyprland-)
   - [Table of contents](#table-of-contents)
