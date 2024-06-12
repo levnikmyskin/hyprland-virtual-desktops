@@ -8,8 +8,6 @@ This plugin **DOES NOT** support `hyprland-git`, please refrain from opening iss
 
 Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:matrix.org)!
 
->>>>>>> main
-
 ## Table of contents
 - [Virtual desktops for Hyprland ](#virtual-desktops-for-hyprland-)
   - [Table of contents](#table-of-contents)
