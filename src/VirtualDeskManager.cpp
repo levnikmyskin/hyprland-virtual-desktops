@@ -112,7 +112,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
 
-    auto  vdesk = getOrCreateVdesk(vdeskId);
+    auto      vdesk = getOrCreateVdesk(vdeskId);
 
     PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
     if (!window) {
@@ -178,7 +178,7 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto      n_monitors     = g_pCompositor->m_vMonitors.size();
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
+    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
@@ -281,11 +281,11 @@ void VirtualDeskManager::invalidateAllLayouts() {
 }
 
 CMonitor* VirtualDeskManager::getCurrentMonitor() {
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor;
+    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
-        for (std::shared_ptr<CMonitor> mon : g_pCompositor->m_vMonitors) {
+        for (auto mon : g_pCompositor->m_vMonitors) {
             if (mon->m_bEnabled && mon->output)
                 return mon.get();
         }

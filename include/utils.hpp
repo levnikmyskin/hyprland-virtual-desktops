@@ -5,6 +5,7 @@
 #include <hyprland/src/debug/Log.hpp>
 #include "globals.hpp"
 #include <hyprland/src/config/ConfigManager.hpp>
+#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
 
@@ -36,6 +37,7 @@ const std::string BACKCYCLE_DISPATCH_STR  = "backcyclevdesks";
 
 const std::string RESET_VDESK_DISPATCH_STR = "vdeskreset";
 const std::string PRINTDESK_DISPATCH_STR   = "printdesk";
+const std::string PRINTSTATE_DISPATCH_STR  = "printstate";
 const std::string PRINTLAYOUT_DISPATCH_STR = "printlayout";
 
 const std::string REMEMBER_NONE     = "none";
@@ -48,17 +50,17 @@ enum RememberLayoutConf {
     monitors = 2
 };
 
-RememberLayoutConf                     layoutConfFromInt(const int64_t);
-RememberLayoutConf                     layoutConfFromString(const std::string& conf);
-void                                   printLog(std::string s, LogLevel level = INFO);
+RememberLayoutConf                    layoutConfFromInt(const int64_t);
+RememberLayoutConf                    layoutConfFromString(const std::string& conf);
+void                                  printLog(std::string s, LogLevel level = INFO);
 
-std::string                            parseMoveDispatch(std::string& arg);
-bool                                   extractBool(std::string& arg);
-std::vector<std::shared_ptr<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
+std::string                           parseMoveDispatch(std::string& arg);
+bool                                  extractBool(std::string& arg);
+std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude = nullptr);
 
-std::string                            ltrim(const std::string& s);
-std::string                            rtrim(const std::string& s);
-std::string                            trim(const std::string& s);
+std::string                           ltrim(const std::string& s);
+std::string                           rtrim(const std::string& s);
+std::string                           trim(const std::string& s);
 
-bool                                   isVerbose();
+bool                                  isVerbose();
 #endif

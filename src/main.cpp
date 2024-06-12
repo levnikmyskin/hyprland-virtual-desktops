@@ -5,6 +5,7 @@
 #include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/events/Events.hpp>
+#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -14,21 +15,21 @@
 #include <any>
 #include <vector>
 
-static std::shared_ptr<HOOK_CALLBACK_FN>             onWorkspaceChangeHook = nullptr;
-static std::shared_ptr<HOOK_CALLBACK_FN>             onWindowOpenHook      = nullptr;
-static std::shared_ptr<HOOK_CALLBACK_FN>             onConfigReloadedHook  = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook      = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook  = nullptr;
 
-inline CFunctionHook*                g_pMonitorConnectHook    = nullptr;
-inline CFunctionHook*                g_pMonitorDisconnectHook = nullptr;
-typedef void                         (*origMonitorConnect)(void*, bool);
-typedef void                         (*origMonitorDisconnect)(void*, bool);
+inline CFunctionHook*                   g_pMonitorConnectHook    = nullptr;
+inline CFunctionHook*                   g_pMonitorDisconnectHook = nullptr;
+typedef void                            (*origMonitorConnect)(void*, bool);
+typedef void                            (*origMonitorDisconnect)(void*, bool);
 
-std::unique_ptr<VirtualDeskManager>  manager = std::make_unique<VirtualDeskManager>();
-std::vector<StickyApps::SStickyRule> stickyRules;
-bool                                 notifiedInit          = false;
-bool                                 monitorLayoutChanging = false;
+std::unique_ptr<VirtualDeskManager>     manager = std::make_unique<VirtualDeskManager>();
+std::vector<StickyApps::SStickyRule>    stickyRules;
+bool                                    notifiedInit          = false;
+bool                                    monitorLayoutChanging = false;
 
-void                                 parseNamesConf(std::string& conf) {
+void                                    parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -173,6 +174,60 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return "";
 }
 
+std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
+    std::string out;
+    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+        out += "Virtual desks\n";
+        int index = 0;
+        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                if(!first) workspaces += ", ";
+                else first = false;
+                workspaces += std::format("{}", workspaceId);
+            }
+            out += std::format(
+                "- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n",
+                desk->name,
+                desk->id,
+                manager->activeVdesk().get() == desk.get(),
+                windows > 0,
+                workspaces,
+                windows
+            );
+            if(index++ < manager->vdesksMap.size() - 1) out += "\n";
+        }
+    } else if(format == eHyprCtlOutputFormat::FORMAT_JSON) {
+        std::string vdesks;
+        int index = 0;
+        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+            unsigned int windows = 0;
+            std::string workspaces;
+            bool first = true;
+            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                if(!first) workspaces += ", ";
+                else first = false;
+                workspaces += std::format("{}", workspaceId);
+            }
+            vdesks += std::format(R"#({{
+                "id": {},
+                "name": "{}",
+                "focused": {},
+                "populated": {},
+                "workspaces": [{}],
+                "windows": {}
+            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
+            if(index++ < manager->vdesksMap.size() - 1) vdesks += ",";
+        }
+        out += std::format(R"#([{}])#", vdesks);
+    }
+    return out;
+}
+
 std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     auto        activeDesk = manager->activeVdesk();
     auto        layout     = activeDesk->activeLayout(manager->conf);
@@ -233,7 +288,7 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
     PHLWINDOW window = std::any_cast<PHLWINDOW>(val);
-    int      vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+    int       vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
 }
@@ -292,13 +347,21 @@ void registerHyprctlCommands() {
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
 
+    // Register printstate
+    cmd.name  = PRINTSTATE_DISPATCH_STR;
+    cmd.fn    = printStateDispatch;
+    cmd.exact = true;
+    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    if (!ptr)
+        printLog(std::format("Failed to register hyprctl command: {}", PRINTSTATE_DISPATCH_STR));
+
     // Register printdesk
     cmd.name  = PRINTDESK_DISPATCH_STR;
     cmd.fn    = printVDeskDispatch;
     cmd.exact = false;
     ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
     if (!ptr)
-        printLog(std::format("Failed to register hyprctl command: {}", VDESK_DISPATCH_STR));
+        printLog(std::format("Failed to register hyprctl command: {}", PRINTDESK_DISPATCH_STR));
 }
 
 // Do NOT change this function.

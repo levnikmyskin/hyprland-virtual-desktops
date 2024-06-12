@@ -1,14 +1,14 @@
 # Virtual desktops for Hyprland ![hyprico](.github/hyprland.ico)
 `virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.  
 
-This plugin **only supports official releases of Hyprland** (e.g., v0.39.x, v0.40.x).  
-If you are on `hyprland-git`, please try compiling this plugin from the [dev branch](https://github.com/levnikmyskin/hyprland-virtual-desktops/tree/dev).
-There is **NO GUARANTEE** that the plugin will compile succesfully on the latest Hyprland commit, but we try our best to keep it updated. Also, always check the [PR section](https://github.com/levnikmyskin/hyprland-virtual-desktops/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc),
-as there might be a draft PR for the next Hyprland release, where you can check the status of development.
+## WARNING
+You are on the `dev` branch. This branch unconsistently gather updates and fixes to follow `hyprland-git`. By unconsistently, I mean that there is NO GUARANTEE that this branch will work with `hyprland-git` at any given time.
+This plugin **DOES NOT** support `hyprland-git`, please refrain from opening issues if virtual-desktop does not compile with the latest commit on hyprland. Feel free to contribute to this branch via PRs though.
 
 
 Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:matrix.org)!
 
+>>>>>>> main
 
 ## Table of contents
 - [Virtual desktops for Hyprland ](#virtual-desktops-for-hyprland-)
@@ -121,6 +121,7 @@ Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, 
 | Command | description | args | example|
 |------------|-------------|------|--------|
 | printdesk (vdesk)| Prints to Hyprland log the specified vdesk or the currently active vdesk* (if no argument is given) | optional vdesk, see [above](#hyprctl-dispatchers) | `hyprctl printdesk` or `hyprctl printdesk 2` or `hyprctl printdesk coding`|
+| printstate | Prints state of all vdesks | `none` | `hyprctl printstate` |
 | printlayout | print to Hyprland logs the current layout | `none` | `hyprctl printlayout` |
 
 
