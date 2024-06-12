@@ -5,6 +5,11 @@
 You are on the `dev` branch. This branch unconsistently gather updates and fixes to follow `hyprland-git`. By unconsistently, I mean that there is NO GUARANTEE that this branch will work with `hyprland-git` at any given time.
 This plugin **DOES NOT** support `hyprland-git`, please refrain from opening issues if virtual-desktop does not compile with the latest commit on hyprland. Feel free to contribute to this branch via PRs though.
 
+
+Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:matrix.org)!
+
+>>>>>>> main
+
 ## Table of contents
 - [Virtual desktops for Hyprland ](#virtual-desktops-for-hyprland-)
   - [Table of contents](#table-of-contents)

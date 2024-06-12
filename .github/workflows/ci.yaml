@@ -1,0 +1,53 @@
+name: Build hyprland-virtual-desktops
+
+on: 
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  gcc_main:
+    name: 'Build hyprland-virtual-desktops (main)'
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+    steps:
+      - name: Checkout repository action
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/actions
+
+
+      - name: Setup base on main
+        uses: ./.github/actions/setup_base
+        if: github.ref == 'refs/heads/main'|| github.base_ref == 'main'
+        with:
+          INSTALL_XORG_PKGS: true
+          branch: 'v0.40.0'
+          hyprwayland: 'v0.3.4'
+
+      - name: Setup base on dev
+        uses: ./.github/actions/setup_base
+        if: github.ref == 'refs/heads/dev'|| github.base_ref == 'dev'
+        with:
+          INSTALL_XORG_PKGS: true
+          branch: 'main'
+
+      - name: Compile Hyprland
+        shell: bash
+        run: |
+          cd Hyprland
+          make all
+          make install
+
+      - name: Build hyprland-virtual-desktops
+        env: 
+          PKG_CONFIG_PATH: "/usr/local/share/pkgconfig/"
+        run: |
+          make all
+
