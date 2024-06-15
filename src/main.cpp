@@ -5,7 +5,7 @@
 #include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/events/Events.hpp>
-#include <hyprland/src/helpers/memory/SharedPtr.hpp>
+#include <hyprutils/memory/SharedPtr.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -15,21 +15,23 @@
 #include <any>
 #include <vector>
 
+using namespace Hyprutils::Memory;
+
 static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook      = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook  = nullptr;
 
 inline CFunctionHook*                   g_pMonitorConnectHook    = nullptr;
 inline CFunctionHook*                   g_pMonitorDisconnectHook = nullptr;
-typedef void                            (*origMonitorConnect)(void*, bool);
-typedef void                            (*origMonitorDisconnect)(void*, bool);
+typedef void (*origMonitorConnect)(void*, bool);
+typedef void (*origMonitorDisconnect)(void*, bool);
 
-std::unique_ptr<VirtualDeskManager>     manager = std::make_unique<VirtualDeskManager>();
-std::vector<StickyApps::SStickyRule>    stickyRules;
-bool                                    notifiedInit          = false;
-bool                                    monitorLayoutChanging = false;
+std::unique_ptr<VirtualDeskManager>  manager = std::make_unique<VirtualDeskManager>();
+std::vector<StickyApps::SStickyRule> stickyRules;
+bool                                 notifiedInit          = false;
+bool                                 monitorLayoutChanging = false;
 
-void                                    parseNamesConf(std::string& conf) {
+void                                 parseNamesConf(std::string& conf) {
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -179,38 +181,36 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
         out += "Virtual desks\n";
         int index = 0;
-        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+        for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
-            std::string workspaces;
-            bool first = true;
-            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+            std::string  workspaces;
+            bool         first = true;
+            for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
                 windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
-                if(!first) workspaces += ", ";
-                else first = false;
+                if (!first)
+                    workspaces += ", ";
+                else
+                    first = false;
                 workspaces += std::format("{}", workspaceId);
             }
-            out += std::format(
-                "- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n",
-                desk->name,
-                desk->id,
-                manager->activeVdesk().get() == desk.get(),
-                windows > 0,
-                workspaces,
-                windows
-            );
-            if(index++ < manager->vdesksMap.size() - 1) out += "\n";
+            out += std::format("- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n", desk->name, desk->id, manager->activeVdesk().get() == desk.get(),
+                               windows > 0, workspaces, windows);
+            if (index++ < manager->vdesksMap.size() - 1)
+                out += "\n";
         }
-    } else if(format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         std::string vdesks;
-        int index = 0;
-        for(auto const& [vdeskId, desk] : manager->vdesksMap) {
+        int         index = 0;
+        for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
-            std::string workspaces;
-            bool first = true;
-            for(auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+            std::string  workspaces;
+            bool         first = true;
+            for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
                 windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
-                if(!first) workspaces += ", ";
-                else first = false;
+                if (!first)
+                    workspaces += ", ";
+                else
+                    first = false;
                 workspaces += std::format("{}", workspaceId);
             }
             vdesks += std::format(R"#({{
@@ -220,8 +220,10 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
                 "populated": {},
                 "workspaces": [{}],
                 "windows": {}
-            }})#", vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
-            if(index++ < manager->vdesksMap.size() - 1) vdesks += ",";
+            }})#",
+                                  vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
+            if (index++ < manager->vdesksMap.size() - 1)
+                vdesks += ",";
         }
         out += std::format(R"#([{}])#", vdesks);
     }
@@ -418,5 +420,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.3"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.4"};
 }
