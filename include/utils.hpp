@@ -5,9 +5,11 @@
 #include <hyprland/src/debug/Log.hpp>
 #include "globals.hpp"
 #include <hyprland/src/config/ConfigManager.hpp>
-#include <hyprland/src/helpers/memory/SharedPtr.hpp>
+#include <hyprutils/memory/WeakPtr.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
+
+using namespace Hyprutils::Memory;
 
 const std::string VIRTUALDESK_NAMES_CONF = "plugin:virtual-desktops:names";
 const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspaces";
