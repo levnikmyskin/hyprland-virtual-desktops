@@ -11,7 +11,6 @@
 #include "globals.hpp"
 #include "utils.hpp"
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/helpers/memory/SharedPtr.hpp>
 
 typedef std::unordered_map<int, int>             WorkspaceMap;
 // map with CMonitor* -> hyprland workspace id
