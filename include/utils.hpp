@@ -8,6 +8,8 @@
 #include <string>
 #include <hyprland/src/Compositor.hpp>
 
+using namespace Hyprutils::Memory;
+
 const std::string VIRTUALDESK_NAMES_CONF = "plugin:virtual-desktops:names";
 const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspaces";
 const std::string REMEMBER_LAYOUT_CONF   = "plugin:virtual-desktops:rememberlayout";
