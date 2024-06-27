@@ -11,7 +11,6 @@
 #include "globals.hpp"
 #include "utils.hpp"
 #include <hyprland/src/Compositor.hpp>
-#include <hyprutils/memory/WeakPtr.hpp>
 
 using namespace Hyprutils::Memory;
 

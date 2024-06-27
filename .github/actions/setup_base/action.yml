@@ -35,6 +35,7 @@ runs:
           go \
           hyprlang \
           hyprcursor \
+          hyprutils \
           jq \
           libc++ \
           libdisplay-info \

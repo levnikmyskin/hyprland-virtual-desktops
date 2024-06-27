@@ -5,7 +5,6 @@
 #include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/events/Events.hpp>
-#include <hyprutils/memory/SharedPtr.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
