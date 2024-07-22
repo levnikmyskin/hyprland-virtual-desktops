@@ -184,5 +184,5 @@ Layout VirtualDesk::generateCurrentMonitorLayout() {
 std::string VirtualDesk::monitorDesc(const CMonitor* monitor) {
     if (!monitor->output)
         return monitor->szName;
-    return monitor->output->description;
+    return monitor->szDescription.empty() ? monitor->szName : monitor->szDescription;
 }
