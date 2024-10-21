@@ -275,8 +275,8 @@ void resetVDeskDispatch(std::string arg) {
 void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     if (monitorLayoutChanging)
         return;
-    PHLWORKSPACE workspace   = std::any_cast<PHLWORKSPACE>(val);
-    int          workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
+    auto workspace   = std::any_cast<PHLWORKSPACE>(val);
+    WORKSPACEID         workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
 
     auto         monitor = g_pCompositor->getMonitorFromID(workspace->m_iMonitorID);
     if (!monitor || !monitor->m_bEnabled)
@@ -288,7 +288,7 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 }
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
-    PHLWINDOW window = std::any_cast<PHLWINDOW>(val);
+    auto window = std::any_cast<PHLWINDOW>(val);
     int       vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
@@ -299,10 +299,10 @@ void hookMonitorDisconnect(void* thisptr, bool destroy) {
     (*(origMonitorDisconnect)g_pMonitorDisconnectHook->m_pOriginal)(thisptr, destroy);
     monitorLayoutChanging = false;
 
-    CMonitor* monitor = static_cast<CMonitor*>(thisptr);
+    CSharedPointer<CMonitor> monitor = CSharedPointer(static_cast<CMonitor*>(thisptr));
     if (isVerbose())
         printLog("Monitor disconnect called with disabled monitor " + monitor->szName);
-    if (currentlyEnabledMonitors(monitor).size() > 0) {
+    if (!currentlyEnabledMonitors(monitor).empty()) {
         manager->invalidateAllLayouts();
         manager->deleteInvalidMonitorsOnAllVdesks(monitor);
         manager->applyCurrentVDesk();
@@ -315,7 +315,7 @@ void hookMonitorConnect(void* thisptr, bool noRule) {
     (*(origMonitorConnect)g_pMonitorConnectHook->m_pOriginal)(thisptr, noRule);
     monitorLayoutChanging = false;
 
-    CMonitor* monitor = static_cast<CMonitor*>(thisptr);
+    CSharedPointer<CMonitor> monitor = CSharedPointer(static_cast<CMonitor*>(thisptr));
     if (monitor->szName == std::string("HEADLESS-1")) {
         return;
     }

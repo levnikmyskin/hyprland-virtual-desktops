@@ -2,7 +2,7 @@
 #include "utils.hpp"
 
 bool StickyApps::parseRule(const std::string& rule, SStickyRule& sticky, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
-    auto comma_pos = rule.find(",");
+    auto comma_pos = rule.find(',');
     if (comma_pos == std::string::npos)
         return false;
     auto window = rule.substr(0, comma_pos);
@@ -16,7 +16,7 @@ bool StickyApps::parseRule(const std::string& rule, SStickyRule& sticky, std::un
 }
 
 bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
-    auto colon_pos = rule.find(":");
+    auto colon_pos = rule.find(':');
     if (colon_pos == std::string::npos)
         return false;
     auto property   = trim(rule.substr(0, colon_pos));
@@ -29,9 +29,9 @@ bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
 
 void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     for (auto& r : rules) {
-        for (auto w : g_pCompositor->m_vWindows) {
+        for (const auto& w : g_pCompositor->m_vWindows) {
             auto windowProp = extractProperty(r, w);
-            if (windowProp == "")
+            if (windowProp.empty())
                 continue;
             if (ruleMatch(r.value, windowProp)) {
                 printLog(std::format("rule matched {}: {}", r.value, windowProp));
@@ -48,7 +48,7 @@ void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_p
 int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager, PHLWINDOW window) {
     for (auto& r : rules) {
         auto windowProp = extractProperty(r, window);
-        if (windowProp == "")
+        if (windowProp.empty())
             continue;
         if (ruleMatch(r.value, windowProp)) {
             printLog(std::format("rule matched {}: {}", r.value, windowProp));
