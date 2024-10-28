@@ -77,7 +77,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
             workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->ID);
         }
 
-        if (workspace->m_iMonitorID != mon->ID)
+        if (workspace->m_pMonitor != mon)
             g_pCompositor->moveWorkspaceToMonitor(workspace, currentMonitor);
 
         // Hack: we change the workspace on the current monitor as our last operation,
@@ -125,7 +125,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // of the window
     auto wid = vdesk->activeLayout(conf).begin()->second;
     for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
-        if (mon->ID == window->m_iMonitorID) {
+        if (mon == window->m_pMonitor) {
             wid = workspace;
         }
     }
