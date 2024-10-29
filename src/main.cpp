@@ -278,13 +278,13 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     auto workspace   = std::any_cast<PHLWORKSPACE>(val);
     WORKSPACEID         workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
 
-    auto         monitor = g_pCompositor->getMonitorFromID(workspace->m_iMonitorID);
+    auto monitor = workspace->m_pMonitor.lock();
     if (!monitor || !monitor->m_bEnabled)
         return;
 
     manager->activeVdesk()->changeWorkspaceOnMonitor(workspaceID, monitor);
     if (isVerbose())
-        printLog("workspace changed: workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(workspace->m_iMonitorID));
+        printLog("workspace changed: workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(monitor->ID));
 }
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
