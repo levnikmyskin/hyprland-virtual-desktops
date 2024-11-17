@@ -51,7 +51,7 @@ void VirtualDeskManager::nextDesk(bool cycle) {
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
-    if (currentlyEnabledMonitors().size() == 0) {
+    if (currentlyEnabledMonitors().empty()) {
         printLog("There are no monitors!");
         return;
     }
@@ -60,8 +60,8 @@ void VirtualDeskManager::applyCurrentVDesk() {
     auto         currentMonitor   = getCurrentMonitor();
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
-    for (auto [lmon, workspaceId] : layout) {
-        CMonitor* mon = g_pCompositor->getMonitorFromID(lmon->ID);
+    for (const auto& [lmon, workspaceId] : layout) {
+        CSharedPointer<CMonitor> mon = lmon;
         if (!mon || !mon->m_bEnabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
             mon = activeVdesk()->deleteInvalidMonitor(mon);
@@ -77,7 +77,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
             workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->ID);
         }
 
-        if (workspace->m_iMonitorID != mon->ID)
+        if (workspace->m_pMonitor != mon)
             g_pCompositor->moveWorkspaceToMonitor(workspace, currentMonitor);
 
         // Hack: we change the workspace on the current monitor as our last operation,
@@ -125,7 +125,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // of the window
     auto wid = vdesk->activeLayout(conf).begin()->second;
     for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
-        if (mon->ID == window->m_iMonitorID) {
+        if (mon == window->m_pMonitor) {
             wid = workspace;
         }
     }
@@ -178,14 +178,14 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto      n_monitors     = g_pCompositor->m_vMonitors.size();
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
+    CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor.lock();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
     // in order to consistently move left/right or up/down.
     if (n_monitors == 2) {
         int  other    = g_pCompositor->m_vMonitors[0]->ID == currentMonitor->ID;
-        auto otherMon = g_pCompositor->m_vMonitors[other].get();
+        auto otherMon = g_pCompositor->m_vMonitors[other];
         g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
 
         auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspaceID());
@@ -199,7 +199,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CMonitor* monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<CMonitor>& monitor) {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf, monitor);
@@ -280,16 +280,16 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CMonitor* VirtualDeskManager::getCurrentMonitor() {
-    CMonitor* currentMonitor = g_pCompositor->m_pLastMonitor.get();
+CSharedPointer<CMonitor> VirtualDeskManager::getCurrentMonitor() {
+    CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
         for (auto mon : g_pCompositor->m_vMonitors) {
             if (mon->m_bEnabled && mon->output)
-                return mon.get();
+                return mon;
         }
         return nullptr;
     }
-    return currentMonitor;
+    return currentMonitor.lock();
 }

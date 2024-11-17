@@ -23,7 +23,7 @@ std::string parseMoveDispatch(std::string& arg) {
 bool extractBool(std::string& arg) {
     size_t pos;
     bool   cycle = false;
-    if ((pos = arg.find(",")) != std::string::npos) {
+    if ((pos = arg.find(',')) != std::string::npos) {
         cycle = arg.substr(0, pos) == "1";
         arg.erase(0, pos + 1);
     } else {
@@ -58,7 +58,7 @@ bool isVerbose() {
     return **PVERBOSELOGS;
 }
 
-std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* exclude) {
+std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude) {
     std::vector<CSharedPointer<CMonitor>> monitors;
     std::copy_if(g_pCompositor->m_vMonitors.begin(), g_pCompositor->m_vMonitors.end(), std::back_inserter(monitors), [&](auto mon) {
         if (g_pCompositor->m_pUnsafeOutput && g_pCompositor->m_pUnsafeOutput->szName == mon->szName)
@@ -70,7 +70,7 @@ std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* e
         if (mon->output->name == std::string("HEADLESS-1"))
             return false;
 
-        if (mon.get() == exclude)
+        if (mon == exclude)
             return false;
 
         return mon->m_bEnabled;
@@ -79,12 +79,12 @@ std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CMonitor* e
 }
 
 std::string ltrim(const std::string& s) {
-    size_t start = s.find_first_not_of(" ");
+    size_t start = s.find_first_not_of(' ');
     return (start == std::string::npos) ? "" : s.substr(start);
 }
 
 std::string rtrim(const std::string& s) {
-    size_t end = s.find_last_not_of(" ");
+    size_t end = s.find_last_not_of(' ');
     return (end == std::string::npos) ? "" : s.substr(0, end + 1);
 }
 

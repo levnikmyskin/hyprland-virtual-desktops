@@ -25,7 +25,7 @@ class VirtualDeskManager {
     void                                                  invalidateAllLayouts();
     void                                                  resetAllVdesks();
     void                                                  resetVdesk(const std::string& arg);
-    void                                                  deleteInvalidMonitorsOnAllVdesks(const CMonitor*);
+    void                                                  deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<CMonitor>&);
     void                                                  deleteInvalidMonitorsOnAllVdesks();
     int                                                   prevDeskId(bool backwardCycle);
     int                                                   nextDeskId(bool cycle);
@@ -35,7 +35,7 @@ class VirtualDeskManager {
     int                          m_activeDeskKey = 1;
     bool                         confLoaded      = false;
     void                         cycleWorkspaces();
-    CMonitor*                    getCurrentMonitor();
+    CSharedPointer<CMonitor>     getCurrentMonitor();
     std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
 };
 #endif
