@@ -275,10 +275,10 @@ void resetVDeskDispatch(std::string arg) {
 void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     if (monitorLayoutChanging)
         return;
-    auto workspace   = std::any_cast<PHLWORKSPACE>(val);
-    WORKSPACEID         workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
+    auto        workspace   = std::any_cast<PHLWORKSPACE>(val);
+    WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
 
-    auto monitor = workspace->m_pMonitor.lock();
+    auto        monitor = workspace->m_pMonitor.lock();
     if (!monitor || !monitor->m_bEnabled)
         return;
 
@@ -289,7 +289,7 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
 
 void onWindowOpen(void*, SCallbackInfo&, std::any val) {
     auto window = std::any_cast<PHLWINDOW>(val);
-    int       vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
+    int  vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
 }
@@ -419,5 +419,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.5"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.6"};
 }
