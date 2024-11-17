@@ -57,7 +57,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto         currentMonitor   = getCurrentMonitor();
+    auto         currentMonitor   = getFocusedMonitor();
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [lmon, workspaceId] : layout) {
@@ -177,7 +177,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     if (!**PCYCLEWORKSPACES)
         return;
 
-    auto      n_monitors     = g_pCompositor->m_vMonitors.size();
+    auto                     n_monitors     = g_pCompositor->m_vMonitors.size();
     CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor.lock();
 
     // TODO: implement for more than two monitors as well.
@@ -280,7 +280,7 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CSharedPointer<CMonitor> VirtualDeskManager::getCurrentMonitor() {
+CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
     CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
