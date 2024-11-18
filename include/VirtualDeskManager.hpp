@@ -30,12 +30,12 @@ class VirtualDeskManager {
     int                                                   prevDeskId(bool backwardCycle);
     int                                                   nextDeskId(bool cycle);
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
-    CSharedPointer<CMonitor>                              getFocusedMonitor();
 
   private:
     int                          m_activeDeskKey = 1;
     bool                         confLoaded      = false;
     void                         cycleWorkspaces();
     std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
+    CSharedPointer<CMonitor>                              getFocusedMonitor();
 };
 #endif
