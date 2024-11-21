@@ -12,10 +12,12 @@ on:
 
 jobs:
   check-format:
-    uses: ./format.yaml
+    uses: ./.github/workflows/format.yaml
   build:
     name: 'Build hyprland-virtual-desktops'
     runs-on: ubuntu-latest
+    needs:
+      - check-format
     container:
       image: archlinux
     steps:
