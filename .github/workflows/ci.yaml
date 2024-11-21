@@ -1,6 +1,6 @@
 name: Build hyprland-virtual-desktops
 
-on: 
+on:
   push:
     branches:
       - main
@@ -11,8 +11,10 @@ on:
       - dev
 
 jobs:
-  gcc_main:
-    name: 'Build hyprland-virtual-desktops (main)'
+  check-format:
+    uses: ./format.yaml
+  build:
+    name: 'Build hyprland-virtual-desktops'
     runs-on: ubuntu-latest
     container:
       image: archlinux
@@ -21,7 +23,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: .github/actions
-
 
       - name: Setup base on main
         uses: ./.github/actions/setup_base
@@ -46,7 +47,7 @@ jobs:
           make install
 
       - name: Build hyprland-virtual-desktops
-        env: 
+        env:
           PKG_CONFIG_PATH: "/usr/local/share/pkgconfig/"
         run: |
           make all
