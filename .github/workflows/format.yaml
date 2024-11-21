@@ -2,6 +2,7 @@ name: Check code formatting
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   clang_format:
