@@ -35,7 +35,7 @@ class VirtualDeskManager {
     int                          m_activeDeskKey = 1;
     bool                         confLoaded      = false;
     void                         cycleWorkspaces();
-    CSharedPointer<CMonitor>     getCurrentMonitor();
     std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
+    CSharedPointer<CMonitor>                              getFocusedMonitor();
 };
 #endif
