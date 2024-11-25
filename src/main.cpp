@@ -184,7 +184,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             std::string  workspaces;
             bool         first = true;
             for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
-                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                windows += g_pCompositor->getWorkspaceByID(workspaceId)->getWindows();
                 if (!first)
                     workspaces += ", ";
                 else
@@ -204,7 +204,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             std::string  workspaces;
             bool         first = true;
             for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
-                windows += g_pCompositor->getWindowsOnWorkspace(workspaceId);
+                windows += g_pCompositor->getWorkspaceByID(workspaceId)->getWindows();
                 if (!first)
                     workspaces += ", ";
                 else
