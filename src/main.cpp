@@ -19,9 +19,9 @@ using namespace Hyprutils::Memory;
 static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook      = nullptr;
 static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook  = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onMonitorAddedHook  = nullptr;
+static CSharedPointer<HOOK_CALLBACK_FN> onPreMonitorRemovedHook  = nullptr;
 
-inline CFunctionHook*                   g_pMonitorConnectHook    = nullptr;
-inline CFunctionHook*                   g_pMonitorDisconnectHook = nullptr;
 typedef void (*origMonitorConnect)(void*, bool);
 typedef void (*origMonitorDisconnect)(void*, bool);
 
@@ -294,12 +294,11 @@ void onWindowOpen(void*, SCallbackInfo&, std::any val) {
         manager->changeActiveDesk(vdesk, true);
 }
 
-void hookMonitorDisconnect(void* thisptr, bool destroy) {
+void onPreMonitorRemoved(void*,  SCallbackInfo&, std::any val) {
+    auto monitor = std::any_cast<PHLMONITOR>(val);
     monitorLayoutChanging = true;
-    (*(origMonitorDisconnect)g_pMonitorDisconnectHook->m_pOriginal)(thisptr, destroy);
     monitorLayoutChanging = false;
 
-    CSharedPointer<CMonitor> monitor = CSharedPointer(static_cast<CMonitor*>(thisptr));
     if (isVerbose())
         printLog("Monitor disconnect called with disabled monitor " + monitor->szName);
     if (!currentlyEnabledMonitors(monitor).empty()) {
@@ -310,12 +309,11 @@ void hookMonitorDisconnect(void* thisptr, bool destroy) {
     }
 }
 
-void hookMonitorConnect(void* thisptr, bool noRule) {
+void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
+    auto monitor = std::any_cast<PHLMONITOR>(val);
     monitorLayoutChanging = true;
-    (*(origMonitorConnect)g_pMonitorConnectHook->m_pOriginal)(thisptr, noRule);
     monitorLayoutChanging = false;
 
-    CSharedPointer<CMonitor> monitor = CSharedPointer(static_cast<CMonitor*>(thisptr));
     if (monitor->szName == std::string("HEADLESS-1")) {
         return;
     }
@@ -405,15 +403,8 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     onWorkspaceChangeHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
     onWindowOpenHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "openWindow", onWindowOpen);
     onConfigReloadedHook  = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
-
-    // Function hooks
-    static const auto METHODS_CONNECT = HyprlandAPI::findFunctionsByName(PHANDLE, "onConnect");
-    g_pMonitorConnectHook             = HyprlandAPI::createFunctionHook(handle, METHODS_CONNECT[0].address, (void*)&hookMonitorConnect);
-    g_pMonitorConnectHook->hook();
-
-    static const auto METHODS_DISCONNECT = HyprlandAPI::findFunctionsByName(PHANDLE, "onDisconnect");
-    g_pMonitorDisconnectHook             = HyprlandAPI::createFunctionHook(handle, METHODS_DISCONNECT[0].address, (void*)&hookMonitorDisconnect);
-    g_pMonitorDisconnectHook->hook();
+    onMonitorAddedHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
+    onPreMonitorRemovedHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preMonitorRemoved", onPreMonitorRemoved);
 
     registerHyprctlCommands();
 
