@@ -52,7 +52,7 @@ void                                    parseNamesConf(std::string& conf) {
         }
     } catch (std::exception const& ex) {
         // #aa1245
-        HyprlandAPI::addNotification(PHANDLE, "Syntax error in your virtual-desktops names config", CColor{4289335877}, 8000);
+        HyprlandAPI::addNotification(PHANDLE, "Syntax error in your virtual-desktops names config", CHyprColor{4289335877}, 8000);
     }
 }
 
@@ -354,7 +354,7 @@ void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
 void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
     static auto* const PNOTIFYINIT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->getDataStaticPtr();
     if (**PNOTIFYINIT && !notifiedInit) {
-        HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CColor{0.f, 1.f, 1.f, 1.f}, 5000);
+        HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CHyprColor{0.f, 1.f, 1.f, 1.f}, 5000);
         notifiedInit = true;
     }
     static auto* const PVDESKNAMESCONF = (Hyprlang::STRING const*)(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF))->getDataStaticPtr();
