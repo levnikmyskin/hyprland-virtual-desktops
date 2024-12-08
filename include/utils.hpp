@@ -53,7 +53,7 @@ enum RememberLayoutConf {
 
 RememberLayoutConf                    layoutConfFromInt(const int64_t);
 RememberLayoutConf                    layoutConfFromString(const std::string& conf);
-void                                  printLog(std::string s, LogLevel level = INFO);
+void                                  printLog(std::string s, eLogLevel level = INFO);
 
 std::string                           parseMoveDispatch(std::string& arg);
 bool                                  extractBool(std::string& arg);
