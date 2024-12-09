@@ -116,7 +116,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
 
     PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
     if (!window) {
-        printLog(std::format("Window {} does not exist???", arg), LogLevel::ERR);
+        printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
         return vdeskId;
     }
 
@@ -230,12 +230,12 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     } catch (std::exception const& ex) { vdeskId = getDeskIdFromName(arg, false); }
 
     if (vdeskId == -1) {
-        printLog("Reset vdesk: " + arg + " not found", LogLevel::WARN);
+        printLog("Reset vdesk: " + arg + " not found", eLogLevel::WARN);
         return;
     }
 
     if (!vdesksMap.contains(vdeskId)) {
-        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", LogLevel::ERR);
+        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", eLogLevel::ERR);
         return;
     }
 
