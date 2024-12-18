@@ -72,7 +72,8 @@ runs:
           librsvg \
           libwebp \
           libjxl \
-          libjpeg-turbo
+          libjpeg-turbo \
+          re2
 
     - name: Get hyprwayland-scanner-git
       shell: bash
