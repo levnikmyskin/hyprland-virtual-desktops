@@ -1,5 +1,4 @@
 #include "VirtualDeskManager.hpp"
-#include "src/desktop/DesktopTypes.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
@@ -123,9 +122,9 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
         if (!window) {
             printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
-            return vdeskId;
+        } else {
+            monitor = window->m_pMonitor;
         }
-        monitor = window->m_pMonitor;
     }
 
     // take the first workspace wherever in the layout
