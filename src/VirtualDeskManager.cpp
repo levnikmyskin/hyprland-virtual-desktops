@@ -114,10 +114,17 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
 
     auto      vdesk = getOrCreateVdesk(vdeskId);
 
-    PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
-    if (!window) {
-        printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
-        return vdeskId;
+    // monitor of the target window
+    // if no arg is provided, it's the currently focussed monitor and otherwise
+    // it's the monitor of the window matched by the arg regex
+    PHLMONITORREF monitor = g_pCompositor->m_pLastMonitor;
+    if (arg != "") {
+        PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
+        if (!window) {
+            printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
+        } else {
+            monitor = window->m_pMonitor;
+        }
     }
 
     // take the first workspace wherever in the layout
@@ -125,7 +132,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // of the window
     auto wid = vdesk->activeLayout(conf).begin()->second;
     for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
-        if (mon == window->m_pMonitor) {
+        if (mon == monitor) {
             wid = workspace;
         }
     }
