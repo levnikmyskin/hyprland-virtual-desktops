@@ -1,5 +1,6 @@
 #include "sticky_apps.hpp"
 #include "utils.hpp"
+#include <regex>
 
 bool StickyApps::parseRule(const std::string& rule, SStickyRule& sticky, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     auto comma_pos = rule.find(',');

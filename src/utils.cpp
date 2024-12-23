@@ -1,6 +1,6 @@
 #include "utils.hpp"
 
-void printLog(std::string s, LogLevel level) {
+void printLog(std::string s, eLogLevel level) {
     // #ifdef DEBUG
     //     std::cout << "[virtual-desktops] " + s << std::endl;
     // #endif
