@@ -69,7 +69,11 @@ runs:
           xcb-util \
           xcb-util-image \
           libzip \
-          librsvg
+          librsvg \
+          libwebp \
+          libjxl \
+          libjpeg-turbo \
+          re2
 
     - name: Get hyprwayland-scanner-git
       shell: bash
@@ -95,6 +99,15 @@ runs:
       run: |
         git clone https://github.com/hyprwm/aquamarine.git
         cd aquamarine
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+        cmake --install build
+
+    - name: Get hyprgraphics
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/hyprgraphics.git
+        cd hyprgraphics
         cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
         cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
         cmake --install build

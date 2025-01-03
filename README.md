@@ -1,6 +1,7 @@
 # Virtual desktops for Hyprland ![hyprico](.github/hyprland.ico)
 `virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.  
 
+## PLEASE READ IF YOU'RE ON HYPRLAND-GIT
 This plugin **only supports official releases of Hyprland** (e.g., v0.39.x, v0.40.x).  
 If you are on `hyprland-git`, please try compiling this plugin from the [dev branch](https://github.com/levnikmyskin/hyprland-virtual-desktops/tree/dev).
 There is **NO GUARANTEE** that the plugin will compile succesfully on the latest Hyprland commit, but we try our best to keep it updated. Also, always check the [PR section](https://github.com/levnikmyskin/hyprland-virtual-desktops/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc),

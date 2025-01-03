@@ -2,20 +2,24 @@
   description = "A plugin for the Hyprland compositor, implementing virtual-desktop functionality.";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-  inputs.hyprland.url = "git+https://github.com/hyprwm/Hyprland?submodules=1&ref=refs/tags/v0.40.0";
+  inputs.hyprland.url = "github:hyprwm/Hyprland/main";
 
-  outputs = { self, nixpkgs, hyprland }:
-    let
-      # Helper function to create packages for each system
-      withPkgsFor = fn: nixpkgs.lib.genAttrs (builtins.attrNames hyprland.packages) (system: fn system nixpkgs.legacyPackages.${system});
-      virtualDesktops = withPkgsFor (system: pkgs: pkgs.gcc13Stdenv.mkDerivation {
+  outputs = {
+    self,
+    nixpkgs,
+    hyprland,
+  }: let
+    # Helper function to create packages for each system
+    withPkgsFor = fn: nixpkgs.lib.genAttrs (builtins.attrNames hyprland.packages) (system: fn system nixpkgs.legacyPackages.${system});
+    virtualDesktops = withPkgsFor (system: pkgs:
+      pkgs.gcc14Stdenv.mkDerivation {
         pname = "virtual-desktops";
-        version = "2.2.2";
+        version = "2.2.5";
         src = ./.;
 
         inherit (hyprland.packages.${system}.hyprland) nativeBuildInputs;
 
-        buildInputs = [ hyprland.packages.${system}.hyprland ] ++ hyprland.packages.${system}.hyprland.buildInputs;
+        buildInputs = [hyprland.packages.${system}.hyprland] ++ hyprland.packages.${system}.hyprland.buildInputs;
 
         # Skip meson phases
         configurePhase = "true";
@@ -39,19 +43,18 @@
           platforms = platforms.linux;
         };
       });
-    in
-    {
-      packages = withPkgsFor (system: pkgs: rec {
-        virtual-desktops = virtualDesktops.${system};
-        default = virtual-desktops;
-      });
+  in {
+    packages = withPkgsFor (system: pkgs: rec {
+      virtual-desktops = virtualDesktops.${system};
+      default = virtual-desktops;
+    });
 
-      devShells = withPkgsFor (system: pkgs: {
-        default = pkgs.mkShell.override { stdenv = pkgs.gcc13Stdenv; } {
-          name = "virtual-desktops";
-          buildInputs = [ hyprland.packages.${system}.hyprland ];
-          inputsFrom = [ hyprland.packages.${system}.hyprland ];
-        };
-      });
-    };
+    devShells = withPkgsFor (system: pkgs: {
+      default = pkgs.mkShell.override {stdenv = pkgs.gcc14Stdenv;} {
+        name = "virtual-desktops";
+        buildInputs = [hyprland.packages.${system}.hyprland];
+        inputsFrom = [hyprland.packages.${system}.hyprland];
+      };
+    });
+  };
 }

@@ -57,7 +57,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto         currentMonitor   = getCurrentMonitor();
+    auto         currentMonitor   = getFocusedMonitor();
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [lmon, workspaceId] : layout) {
@@ -114,10 +114,17 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
 
     auto      vdesk = getOrCreateVdesk(vdeskId);
 
-    PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
-    if (!window) {
-        printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
-        return vdeskId;
+    // monitor of the target window
+    // if no arg is provided, it's the currently focussed monitor and otherwise
+    // it's the monitor of the window matched by the arg regex
+    PHLMONITORREF monitor = g_pCompositor->m_pLastMonitor;
+    if (arg != "") {
+        PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
+        if (!window) {
+            printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
+        } else {
+            monitor = window->m_pMonitor;
+        }
     }
 
     // take the first workspace wherever in the layout
@@ -125,7 +132,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // of the window
     auto wid = vdesk->activeLayout(conf).begin()->second;
     for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
-        if (mon == window->m_pMonitor) {
+        if (mon == monitor) {
             wid = workspace;
         }
     }
@@ -177,7 +184,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     if (!**PCYCLEWORKSPACES)
         return;
 
-    auto      n_monitors     = g_pCompositor->m_vMonitors.size();
+    auto                     n_monitors     = g_pCompositor->m_vMonitors.size();
     CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor.lock();
 
     // TODO: implement for more than two monitors as well.
@@ -280,7 +287,7 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CSharedPointer<CMonitor> VirtualDeskManager::getCurrentMonitor() {
+CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
     CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
