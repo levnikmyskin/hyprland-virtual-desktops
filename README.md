@@ -227,10 +227,9 @@ In order to use plugins, you should compile Hyprland yourself. See [Hyprland Wik
 
 You can use:  
 ```bash
-HYPRLAND_HEADERS=path/to/hyprlandrepo make all
+make all
 ```  
-this will compile and copy the compiled `.so` plugin in the `$HOME/.local/share/hyprload/plugins/bin` path (useful if you use [hyprload](https://github.com/Duckonaut/hyprload)).  
-You can also use `make virtual-desktops.so` to output the compiled plugin in the repo directory.
+this will compile the `.so` plugin in the `./build` directory.
 
 Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
 
