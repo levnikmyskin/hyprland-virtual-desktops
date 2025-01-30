@@ -16,7 +16,7 @@
     virtualDesktops = withPkgsFor (system: pkgs:
       pkgs.gcc14Stdenv.mkDerivation {
         pname = "virtual-desktops";
-        version = "2.2.7";
+        version = "2.2.8";
         src = ./.;
 
         inherit (hyprland.packages.${system}.hyprland) nativeBuildInputs;

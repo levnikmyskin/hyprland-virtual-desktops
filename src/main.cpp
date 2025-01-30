@@ -69,63 +69,78 @@ Hyprlang::CParseResult parseStickyRule(const char* command, const char* value) {
     return result;
 }
 
-void virtualDeskDispatch(std::string arg) {
+SDispatchResult virtualDeskDispatch(std::string arg) {
     manager->changeActiveDesk(arg, true);
+    return SDispatchResult{};
 }
 
-void goLastVDeskDispatch(std::string) {
+SDispatchResult goLastVDeskDispatch(std::string) {
     manager->lastVisitedDesk();
+    return SDispatchResult{};
 }
 
-void goPrevDeskDispatch(std::string) {
+SDispatchResult goPrevDeskDispatch(std::string) {
     manager->prevDesk(false);
+    return SDispatchResult{};
 }
 
-void goNextVDeskDispatch(std::string) {
+SDispatchResult goNextVDeskDispatch(std::string) {
     manager->nextDesk(false);
+    return SDispatchResult{};
 }
 
-void cycleBackwardsDispatch(std::string) {
+SDispatchResult cycleBackwardsDispatch(std::string) {
     manager->prevDesk(true);
+    return SDispatchResult{};
 }
 
-void cycleVDeskDispatch(std::string) {
+SDispatchResult cycleVDeskDispatch(std::string) {
     manager->nextDesk(true);
+    return SDispatchResult{};
 }
 
-void moveToDeskDispatch(std::string arg) {
+SDispatchResult moveToDeskDispatch(std::string arg) {
     manager->changeActiveDesk(manager->moveToDesk(arg), true);
+    return SDispatchResult{};
 }
 
-void moveToDeskSilentDispatch(std::string arg) {
+SDispatchResult moveToDeskSilentDispatch(std::string arg) {
     manager->moveToDesk(arg);
+    return SDispatchResult{};
 }
 
-void moveToLastDeskDispatch(std::string arg) {
+SDispatchResult moveToLastDeskDispatch(std::string arg) {
     manager->changeActiveDesk(manager->moveToDesk(arg, manager->lastDesk), true);
+    return SDispatchResult{};
 }
 
-void moveToLastDeskSilentDispatch(std::string arg) {
+SDispatchResult moveToLastDeskSilentDispatch(std::string arg) {
     manager->moveToDesk(arg, manager->lastDesk);
+    return SDispatchResult{};
 }
 
-void moveToPrevDeskDispatch(std::string arg) {
+SDispatchResult moveToPrevDeskDispatch(std::string arg) {
     bool cycle = extractBool(arg);
     manager->changeActiveDesk(manager->moveToDesk(arg, manager->prevDeskId(cycle)), true);
+    return SDispatchResult{};
 }
-void moveToPrevDeskSilentDispatch(std::string arg) {
+
+SDispatchResult moveToPrevDeskSilentDispatch(std::string arg) {
     bool cycle = extractBool(arg);
     manager->moveToDesk(arg, manager->prevDeskId(cycle));
+    return SDispatchResult{};
 }
 
-void moveToNextDeskDispatch(std::string arg) {
+SDispatchResult moveToNextDeskDispatch(std::string arg) {
     bool cycle = extractBool(arg);
     manager->changeActiveDesk(manager->moveToDesk(arg, manager->nextDeskId(cycle)), true);
+    return SDispatchResult{};
 }
 
-void moveToNextDeskSilentDispatch(std::string arg) {
+SDispatchResult moveToNextDeskSilentDispatch(std::string arg) {
     bool cycle = extractBool(arg);
     manager->moveToDesk(arg, manager->nextDeskId(cycle));
+    return SDispatchResult{};
 }
 
 std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
@@ -265,7 +280,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return out;
 }
 
-void resetVDeskDispatch(std::string arg) {
+SDispatchResult resetVDeskDispatch(std::string arg) {
     if (arg.length() == 0) {
         printLog("Resetting all vdesks to default layouts");
         manager->resetAllVdesks();
@@ -275,6 +290,7 @@ void resetVDeskDispatch(std::string arg) {
     }
     manager->applyCurrentVDesk();
     StickyApps::matchRules(stickyRules, manager);
+    return SDispatchResult{};
 }
 
 void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
@@ -400,23 +416,23 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     PHANDLE = handle;
 
     // Dispatchers
-    HyprlandAPI::addDispatcher(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, BACKCYCLE_DISPATCH_STR, cycleBackwardsDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, VDESK_DISPATCH_STR, virtualDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, LASTDESK_DISPATCH_STR, goLastVDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, PREVDESK_DISPATCH_STR, goPrevDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, NEXTDESK_DISPATCH_STR, goNextVDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, BACKCYCLE_DISPATCH_STR, cycleBackwardsDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, CYCLEVDESK_DISPATCH_STR, cycleVDeskDispatch);
 
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETOLASTDESK_DISPATCH_STR, moveToLastDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETOLASTDESKSILENT_DISPATCH_STR, moveToLastDeskSilentDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETOPREVDESK_DISPATCH_STR, moveToPrevDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETOPREVDESKSILENT_DISPATCH_STR, moveToPrevDeskSilentDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETONEXTDESK_DISPATCH_STR, moveToNextDeskDispatch);
-    HyprlandAPI::addDispatcher(PHANDLE, MOVETONEXTDESKSILENT_DISPATCH_STR, moveToNextDeskSilentDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETODESK_DISPATCH_STR, moveToDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETODESKSILENT_DISPATCH_STR, moveToDeskSilentDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETOLASTDESK_DISPATCH_STR, moveToLastDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETOLASTDESKSILENT_DISPATCH_STR, moveToLastDeskSilentDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETOPREVDESK_DISPATCH_STR, moveToPrevDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETOPREVDESKSILENT_DISPATCH_STR, moveToPrevDeskSilentDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETONEXTDESK_DISPATCH_STR, moveToNextDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, MOVETONEXTDESKSILENT_DISPATCH_STR, moveToNextDeskSilentDispatch);
 
-    HyprlandAPI::addDispatcher(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
+    HyprlandAPI::addDispatcherV2(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
 
     // Configs
     HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, Hyprlang::STRING{"unset"});
@@ -440,5 +456,5 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
-    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.7"};
+    return {"virtual-desktops", "Virtual desktop like workspaces", "LevMyskin", "2.2.8"};
 }
