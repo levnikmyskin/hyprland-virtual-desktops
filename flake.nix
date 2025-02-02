@@ -3,8 +3,8 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  # Hyprland at tag v0.47.1
-  inputs.hyprland.url = "github:hyprwm/Hyprland/75dff7205f6d2bd437abfb4196f700abee92581a";
+  # Hyprland at tag v0.47.2
+  inputs.hyprland.url = "github:hyprwm/Hyprland/882f7ad7d2bbfc7440d0ccaef93b1cdd78e8e3ff";
 
   outputs = {
     self,
