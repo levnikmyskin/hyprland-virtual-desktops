@@ -319,7 +319,7 @@ I've noticed that, sometimes, when disconnecting or reconnecting monitors, there
   
 ### It's actually the plugin 😱
 If instead you're seeing weird behaviour with the plugin itself, remember you can always run:  
-`hyprtl dispatch vdeskreset`
+`hyprctl dispatch vdeskreset`
 
 ## Thanks to
 [split-workspaces](https://github.com/Duckonaut/split-monitor-workspaces/), from which I borrowed the Makefile, 
