@@ -45,6 +45,8 @@ const std::string REMEMBER_NONE     = "none";
 const std::string REMEMBER_SIZE     = "size";
 const std::string REMEMBER_MONITORS = "monitors";
 
+const std::string VDESKCHANGE_EVENT_STR = "vdesk";
+
 enum RememberLayoutConf {
     none     = 0,
     size     = 1,
