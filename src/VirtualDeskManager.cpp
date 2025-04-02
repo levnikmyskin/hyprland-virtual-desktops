@@ -2,6 +2,7 @@
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
+#include <hyprland/src/managers/EventManager.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -90,6 +91,8 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (currentMonitor && focusedWorkspace)
         currentMonitor->changeWorkspace(focusedWorkspace, false);
+
+    g_pEventManager->postEvent(SHyprIPCEvent{VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey)});
 }
 
 int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
@@ -112,7 +115,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     if (isVerbose())
         printLog("creating new vdesk with id " + std::to_string(vdeskId));
 
-    auto      vdesk = getOrCreateVdesk(vdeskId);
+    auto vdesk = getOrCreateVdesk(vdeskId);
 
     // monitor of the target window
     // if no arg is provided, it's the currently focussed monitor and otherwise
