@@ -7,13 +7,13 @@
 BUILD_DIR = build
 
 all: 
-	mkdir $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release ..
 	cmake --build $(BUILD_DIR)
 	cp $(BUILD_DIR)/libhyprland-virtual-desktops.so ./virtual-desktops.so
 
 debug: 
-	mkdir $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
 	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug ..
 	cmake --build $(BUILD_DIR)
 	cp $(BUILD_DIR)/libhyprland-virtual-desktops.so ./virtual-desktops.so
