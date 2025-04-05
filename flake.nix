@@ -69,9 +69,6 @@
 
           hyprland.packages.${system}.hyprland
         ];
-        shellHook = ''
-          exec ${pkgs.zsh}/bin/zsh
-        '';
       };
     });
   };
