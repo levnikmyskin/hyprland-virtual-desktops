@@ -1,8 +1,8 @@
 # Virtual desktops for Hyprland ![hyprico](.github/hyprland.ico)
-`virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.  
+`virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.
 
 ## PLEASE READ IF YOU'RE ON HYPRLAND-GIT
-This plugin **only supports official releases of Hyprland** (e.g., v0.39.x, v0.40.x).  
+This plugin **only supports official releases of Hyprland** (e.g., v0.39.x, v0.40.x).
 If you are on `hyprland-git`, please try compiling this plugin from the [dev branch](https://github.com/levnikmyskin/hyprland-virtual-desktops/tree/dev).
 There is **NO GUARANTEE** that the plugin will compile succesfully on the latest Hyprland commit, but we try our best to keep it updated. Also, always check the [PR section](https://github.com/levnikmyskin/hyprland-virtual-desktops/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc),
 as there might be a draft PR for the next Hyprland release, where you can check the status of development.
@@ -39,27 +39,27 @@ Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:m
 
 ## What is this exactly?
 
-In Hyprland, each screen has its own set of workspaces. For instance, say you have two monitors, with workspace 1 on screen 1 
-and workspace 2 on screen 2:  
+In Hyprland, each screen has its own set of workspaces. For instance, say you have two monitors, with workspace 1 on screen 1
+and workspace 2 on screen 2:
  - When you switch from workspace 1 to 2, Hyprland will simply focus your second screen;
  - If you switch to workspace 3, your active screen will go to workspace 3, whereas the other screen will stay on whichever workspace it is currently on.
 
-You may think of a virtual desktop, instead, as a "single" 
-workspace which extends across your screens (even though, internally, you will still have _n_ different workspaces on your _n_ monitors). If you've ever used KDE Plasma (or Gnome, I think) with 
-multiple screens, this plugin basically replicates that 
-functionality.  
+You may think of a virtual desktop, instead, as a "single"
+workspace which extends across your screens (even though, internally, you will still have _n_ different workspaces on your _n_ monitors). If you've ever used KDE Plasma (or Gnome, I think) with
+multiple screens, this plugin basically replicates that
+functionality.
 Taking the previous example:
  - You will be on virtual desktop 1. Let's say you open your web browser on your first screen and an IDE on your second screen;
  - When you switch to virtual desktop 2, both screens will switch to empty workspaces. Let's say here you open your email client and your favourite chat application;
  - If you switch back to virtual desktop 1, you will get back your web browser and the IDE on screen 1 and 2; and viceversa when you go back to virtual desktop 2.
- 
+
 ## How does this work?
 
 ### It's just workspaces, really
 Internally, this simply ties _n_ workspaces to your _n_ screens, for each virtual desktop. That is, on virtual desktop 1 you will have workspace 1 on screen 1 and workspace 2 on screen 2;
 on virtual desktop 2, you will have workspace 3 on screen 1 and workspace 4 on screen 2, and so on.
 
-However, if you focus another workspace on a given virtual desktop, the plugin will remember this and you will keep this layout (see [Layouts](#Layouts)). 
+However, if you focus another workspace on a given virtual desktop, the plugin will remember this and you will keep this layout (see [Layouts](#Layouts)).
 
 **Notice**: screen 1 and screen 2 are not necessarily what you expect your first and second screen to be, e.g., screen 1 is not necessarily your left screen, and screen 2 is not necessarily your right screen.
 
@@ -86,23 +86,23 @@ This plugin exposes a few hyprctl dispatchers:
 | cyclevdesks | cycle between currently existing vdesks. Goes back to vdesk 1 if next vdesk does not exist | `none` | `cyclevdesks` |
 
 
-> BREAKING v2.1.0: `prevdesk` dispatcher was renamed to `lastdesk`. `prevdesk` has a new functionality: it goes to the previous desk. If you were using `prevdesk`, please update your config. 
+> BREAKING v2.1.0: `prevdesk` dispatcher was renamed to `lastdesk`. `prevdesk` has a new functionality: it goes to the previous desk. If you were using `prevdesk`, please update your config.
 
 For `vdesk` names, you can use:
  - ID: e.g., `1`, `2` etc;
  - Name: e.g., `coding`, `internet`, `mail and chats`
 
-If a `vdesk` with a given ID or name does not exist, it'll be created on the fly. If you give a (non configured, see [below](#configuration-values)) 
-name, it will be assigned to the next available vdesk id: the virtual-desktops 
-plugin will remember this association even if Hyprland kills the related workspaces. 
-  
-The `movetodesk` and `movetodesksilent` dispatchers work similarly to 
+If a `vdesk` with a given ID or name does not exist, it'll be created on the fly. If you give a (non configured, see [below](#configuration-values))
+name, it will be assigned to the next available vdesk id: the virtual-desktops
+plugin will remember this association even if Hyprland kills the related workspaces.
+
+The `movetodesk` and `movetodesksilent` dispatchers work similarly to
 Hyprland's `movetoworkspace` and `movetoworkspacesilent` dispatchers. See [Hyprland's wiki](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers). Of course, make sure to use the `vdesk` syntax above instead of Hyprland's.
 
-#### Mix with Hyprland native workspaces 
-You can use `hyprctl dispatch vdesk n`, even if you have 
+#### Mix with Hyprland native workspaces
+You can use `hyprctl dispatch vdesk n`, even if you have
 no secondary screen connected at the moment (the behaviour would be identical to native workspaces). Also, I would REMOVE
-any workspace related configuration, such as `wsbind`. If you want to leverage [workspace-specific rules](https://wiki.hyprland.org/Configuring/Workspace-Rules/), you can: workspaces are always assigned 
+any workspace related configuration, such as `wsbind`. If you want to leverage [workspace-specific rules](https://wiki.hyprland.org/Configuring/Workspace-Rules/), you can: workspaces are always assigned
 to the same vdesk given the same number of monitors, unless you focus (e.g. with hyprctl) another workspace (see [Layouts](#Layouts)). For instance:
  - Given two monitors:
    - vdesk 1 has workspaces 1 and 2;
@@ -115,7 +115,7 @@ to the same vdesk given the same number of monitors, unless you focus (e.g. with
 The vdesk a workspace will end up to is easily computed by doing `ceil(workspace_id / n_monitors)`. You know where I'm going with this one...you can easily script it.
 
 ### Hyprctl commands
-Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, you can use them by calling `hyprctl {command} {args}`.  
+Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, you can use them by calling `hyprctl {command} {args}`.
 **NOTICE**: some of these used to be dispatchers.
 
 | Command | description | args | example|
@@ -125,17 +125,24 @@ Since version 2.2, this plugin exposes a couple of `hyprctl` commands. That is, 
 | printlayout | print to Hyprland logs the current layout | `none` | `hyprctl printlayout` |
 
 
+### Hyprland IPC events
+The plugin adds some IPC events to the [hyprland event socket](https://wiki.hyprland.org/IPC/#xdg_runtime_dirhyprhissocket2sock).
+
+| Event | description | parameters | example |
+| ---   | ---         | ---  | ---     |
+| vdesk | The active vdesk has changed | vdesk id | When you switch from vdesk 1 to vdesk 2, `vdesk 2` is emitted |
+
 ### Hyprland keywords
-Since version 2.2, this plugin exposes one keyword: `stickyrule`.  
-A sticky rule is composed of a window identifier and a vdesk identifier.  
+Since version 2.2, this plugin exposes one keyword: `stickyrule`.
+A sticky rule is composed of a window identifier and a vdesk identifier.
 A window matched by a sticky rule will be moved to the matched vdesk:
   1. When the window is created (similar to [Hyprland's `workspace` windowrule](https://wiki.hyprland.org/Configuring/Window-Rules/#window-rules-v2), but with virtual desks);
   2. Every time a monitor is connected/disconnected.
-  
+
 **BE CAREFUL**:
   1. **NOT** to mix this with Hyprland's `workspace` windowrule (it wouldn't make sense right?);
   2. This is not a plugin config, but an Hyprland keyword. Place it in the top level of Hyprland's config (i.e., where you'd put windowrules too).
-  
+
 #### Syntax
 ```bash
 stickyrule = window,vdesk
@@ -144,7 +151,7 @@ stickyrule = window,vdesk
   - `vdesk` identifier has the same syntax specified above.
 
 #### Examples
-`stickyrule = class:^(kittysticky)$,3`  
+`stickyrule = class:^(kittysticky)$,3`
 `stickyrule = title:thunderbird,mail`
 
 
@@ -165,14 +172,14 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 * `cycleworkspaces`:  THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^.
 
 
-#### Example config 
+#### Example config
 ```ini
 stickyrule = class:^(kittysticky)$,3
 stickyrule = title:thunderbird,mail
 
 plugin {
     virtual-desktops {
-        names = 1:coding, 2:internet, 3:mail and chats 
+        names = 1:coding, 2:internet, 3:mail and chats
         cycleworkspaces = 1
         rememberlayout = size
         notifyinit = 0
@@ -182,15 +189,15 @@ plugin {
 ```
 
 ## Layouts
-Version 2.0 of this plugin introduced the concept of a *layout*, with the meaning of "a specific combination of workspaces on a (more or less) specific combination of monitors".  
+Version 2.0 of this plugin introduced the concept of a *layout*, with the meaning of "a specific combination of workspaces on a (more or less) specific combination of monitors".
 In other words, `virtual-desktops` remembers if you focused another workspace on your vdesk, even if you switch to another vdesk and then come back to this one
 
 #### Example
 Say you have 2 monitors A and B, and you're on vdesk 1:
  - On monitor A you have workspace 1, and on monitor B you have workspace 2;
- - Now, say you focus workspace 4 with `hyprctl dispatch workspace 4` on monitor B. 
- - If you switch to vdesk 2 and back to vdesk 1, you will see workspace 4 on monitor B instead of workspace 2.  
-  
+ - Now, say you focus workspace 4 with `hyprctl dispatch workspace 4` on monitor B.
+ - If you switch to vdesk 2 and back to vdesk 1, you will see workspace 4 on monitor B instead of workspace 2.
+
 **Notice** that, in this case, workspace 4 would also be shown on vdesk 2.
 
 ### Layouts are cached and restored if you disconnect/reconnect monitors
@@ -223,12 +230,12 @@ If we now disconnect monitor C and reconnect monitor B: our connected monitors a
 
 
 ## Install
-In order to use plugins, you should compile Hyprland yourself. See [Hyprland Wiki#Using Plugins](https://wiki.hyprland.org/Plugins/Using-Plugins/).  
+In order to use plugins, you should compile Hyprland yourself. See [Hyprland Wiki#Using Plugins](https://wiki.hyprland.org/Plugins/Using-Plugins/).
 
-You can use:  
+You can use:
 ```bash
 make all
-```  
+```
 this will compile the `.so` plugin in the `./build` directory.
 
 Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
@@ -248,13 +255,13 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-   
+
     hyprland = {
       url = "git+https://github.com/hyprwm/Hyprland?submodules=1";
       follows = "hyprland-virtual-desktops/hyprland"; # To make sure we run the same version of hyprland that the plugin was built against
     };
     hyprland-virtual-desktops.url = "github:levnikmyskin/hyprland-virtual-desktops";
-    
+
   };
 
   outputs = { nixpkgs, home-manager, hyprland, hyprland-virtual-desktops, ... }:
@@ -284,7 +291,7 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
 
                 plugin {
                     virtual-desktops {
-                        names = 1:coding, 2:internet, 3:mail and chats 
+                        names = 1:coding, 2:internet, 3:mail and chats
                         cycleworkspaces = 1
                         rememberlayout = size
                         notifyinit = 0
@@ -301,7 +308,7 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
           # You will want to enable the Hyprland module in your NixOS configuration
           # too, since that also enables critical components like xdg-desktop-portal,
           # xwayland, polkit, etc
-          # 
+          #
           # # Have this somewhere in your NixOS configuration
           # programs.hyprland = {
           #   enabled = true;
@@ -314,13 +321,13 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
 ```
 
 ## Help, Hyprland is being weird!
-I've noticed that, sometimes, when disconnecting or reconnecting monitors, there might be weird artifacts or similar. Try running:  
-`hyprctl reload`  
-  
+I've noticed that, sometimes, when disconnecting or reconnecting monitors, there might be weird artifacts or similar. Try running:
+`hyprctl reload`
+
 ### It's actually the plugin 😱
 If instead you're seeing weird behaviour with the plugin itself, remember you can always run:  
 `hyprctl dispatch vdeskreset`
 
 ## Thanks to
-[split-workspaces](https://github.com/Duckonaut/split-monitor-workspaces/), from which I borrowed the Makefile, 
+[split-workspaces](https://github.com/Duckonaut/split-monitor-workspaces/), from which I borrowed the Makefile,
 and the general idea of how to write Hyprland plugins.

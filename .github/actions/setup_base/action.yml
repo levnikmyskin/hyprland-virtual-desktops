@@ -71,6 +71,7 @@ runs:
           libzip \
           librsvg \
           libwebp \
+          libspng \
           libjxl \
           libjpeg-turbo \
           re2
