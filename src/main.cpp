@@ -297,9 +297,9 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     if (monitorLayoutChanging)
         return;
     auto        workspace   = std::any_cast<PHLWORKSPACE>(val);
-    WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_iID;
+    WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_id;
 
-    auto        monitor = workspace->m_pMonitor.lock();
+    auto        monitor = workspace->m_monitor.lock();
     if (!monitor || !monitor->m_bEnabled)
         return;
 

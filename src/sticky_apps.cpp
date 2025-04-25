@@ -30,7 +30,7 @@ bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
 
 void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     for (auto& r : rules) {
-        for (const auto& w : g_pCompositor->m_vWindows) {
+        for (const auto& w : g_pCompositor->m_windows) {
             auto windowProp = extractProperty(r, w);
             if (windowProp.empty())
                 continue;
