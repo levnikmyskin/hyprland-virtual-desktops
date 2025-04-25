@@ -78,7 +78,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
             workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->ID);
         }
 
-        if (workspace->m_pMonitor != mon)
+        if (workspace->m_monitor != mon)
             g_pCompositor->moveWorkspaceToMonitor(workspace, currentMonitor);
 
         // Hack: we change the workspace on the current monitor as our last operation,
@@ -120,7 +120,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // monitor of the target window
     // if no arg is provided, it's the currently focussed monitor and otherwise
     // it's the monitor of the window matched by the arg regex
-    PHLMONITORREF monitor = g_pCompositor->m_pLastMonitor;
+    PHLMONITORREF monitor = g_pCompositor->m_lastMonitor;
     if (arg != "") {
         PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
         if (!window) {
@@ -187,21 +187,21 @@ void VirtualDeskManager::cycleWorkspaces() {
     if (!**PCYCLEWORKSPACES)
         return;
 
-    auto                     n_monitors     = g_pCompositor->m_vMonitors.size();
-    CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor.lock();
+    auto                     n_monitors     = g_pCompositor->m_monitors.size();
+    CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor.lock();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
     // in order to consistently move left/right or up/down.
     if (n_monitors == 2) {
-        int  other    = g_pCompositor->m_vMonitors[0]->ID == currentMonitor->ID;
-        auto otherMon = g_pCompositor->m_vMonitors[other];
+        int  other    = g_pCompositor->m_monitors[0]->ID == currentMonitor->ID;
+        auto otherMon = g_pCompositor->m_monitors[other];
         g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
 
         auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspaceID());
         auto otherWorkspace   = g_pCompositor->getWorkspaceByID(otherMon->activeWorkspaceID());
-        activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_iID, currentMonitor);
-        activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_iID, otherMon);
+        activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_id, currentMonitor);
+        activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_id, otherMon);
     } else if (n_monitors > 2) {
         printLog("Cycling workspaces is not yet implemented for more than 2 monitors."
                  "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
@@ -291,11 +291,11 @@ void VirtualDeskManager::invalidateAllLayouts() {
 }
 
 CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_pLastMonitor;
+    CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor;
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_bEnabled || !currentMonitor->output)) {
-        for (auto mon : g_pCompositor->m_vMonitors) {
+        for (auto mon : g_pCompositor->m_monitors) {
             if (mon->m_bEnabled && mon->output)
                 return mon;
         }
