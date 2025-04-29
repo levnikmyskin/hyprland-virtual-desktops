@@ -66,13 +66,13 @@ int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::un
 
 const std::string StickyApps::extractProperty(const SStickyRule& rule, PHLWINDOW window) {
     if (rule.property == TITLE) {
-        return window->m_szTitle;
+        return window->m_title;
     } else if (rule.property == INITIAL_TITLE) {
-        return window->m_szInitialTitle;
+        return window->m_initialTitle;
     } else if (rule.property == CLASS) {
-        return window->m_szClass;
+        return window->m_class;
     } else if (rule.property == INITIAL_CLASS) {
-        return window->m_szInitialClass;
+        return window->m_initialClass;
     }
     return "";
 }
