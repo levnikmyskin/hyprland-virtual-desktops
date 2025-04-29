@@ -126,7 +126,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         if (!window) {
             printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
         } else {
-            monitor = window->m_pMonitor;
+            monitor = window->m_monitor;
         }
     }
 
