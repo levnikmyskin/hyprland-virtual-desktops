@@ -67,19 +67,19 @@ std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPoin
         if (!mon)
             return false;
 
-        if (g_pCompositor->m_unsafeOutput && g_pCompositor->m_unsafeOutput->szName == mon->szName)
+        if (g_pCompositor->m_unsafeOutput && g_pCompositor->m_unsafeOutput->m_name == mon->m_name)
             return false;
 
-        if (!mon->output)
+        if (!mon->m_output)
             return false;
 
-        if (mon->output->name == std::string("HEADLESS-1"))
+        if (mon->m_output->name == std::string("HEADLESS-1"))
             return false;
 
         if (mon == exclude)
             return false;
 
-        return mon->m_bEnabled;
+        return mon->m_enabled;
     });
     return monitors;
 }

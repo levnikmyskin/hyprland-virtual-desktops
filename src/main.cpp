@@ -256,7 +256,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
         out += std::format("Active desk: {}\nActive layout size: {};\nMonitors:", activeDesk->name, layout.size());
         for (auto const& [mon, wid] : layout) {
-            out += std::format("\n\t{}; Workspace {}", escapeJSONStrings(mon->szName), wid);
+            out += std::format("\n\t{}; Workspace {}", escapeJSONStrings(mon->m_name), wid);
         }
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         out += std::format(R"#({{
@@ -271,7 +271,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
                 "monitorId": {},
                 "workspace": {}
             }})#",
-                               mon->ID, wid);
+                               mon->m_id, wid);
             if (++index < layout.size())
                 out += ",";
         }
@@ -300,13 +300,13 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_id;
 
     auto        monitor = workspace->m_monitor.lock();
-    if (!monitor || !monitor->m_bEnabled)
+    if (!monitor || !monitor->m_enabled)
         return;
 
     manager->activeVdesk()->changeWorkspaceOnMonitor(workspaceID, monitor);
     if (isVerbose()) {
         auto vdesk = manager->activeVdesk();
-        printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(monitor->ID));
+        printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(monitor->m_id));
     }
 }
 
@@ -319,21 +319,21 @@ void onWindowOpen(void*, SCallbackInfo&, std::any val) {
 
 void onPreMonitorRemoved(void*, SCallbackInfo&, std::any val) {
     CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
-    if (monitor->szName == std::string("HEADLESS-1")) {
+    if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
     if (isVerbose())
-        printLog("Monitor PRE disconnect called with disabled monitor " + monitor->szName);
+        printLog("Monitor PRE disconnect called with disabled monitor " + monitor->m_name);
     monitorLayoutChanging = true;
 }
 
 void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
     CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
-    if (monitor->szName == std::string("HEADLESS-1")) {
+    if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
     if (isVerbose())
-        printLog("Monitor disconnect called with disabled monitor " + monitor->szName);
+        printLog("Monitor disconnect called with disabled monitor " + monitor->m_name);
     if (!currentlyEnabledMonitors(monitor).empty()) {
         monitorLayoutChanging = false;
         manager->invalidateAllLayouts();
@@ -345,21 +345,21 @@ void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
 
 void onPreMonitorAdded(void*, SCallbackInfo&, std::any val) {
     CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
-    if (monitor->szName == std::string("HEADLESS-1")) {
+    if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
     if (isVerbose())
-        printLog("Monitor PRE connect called with monitor " + monitor->szName);
+        printLog("Monitor PRE connect called with monitor " + monitor->m_name);
     monitorLayoutChanging = true;
 }
 
 void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
     CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
-    if (monitor->szName == std::string("HEADLESS-1")) {
+    if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
     if (isVerbose())
-        printLog("Monitor connect called with monitor " + monitor->szName);
+        printLog("Monitor connect called with monitor " + monitor->m_name);
     monitorLayoutChanging = false;
     manager->invalidateAllLayouts();
     manager->deleteInvalidMonitorsOnAllVdesks();
