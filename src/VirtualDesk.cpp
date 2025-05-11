@@ -147,7 +147,7 @@ void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CSharedPointer<CMoni
     if (enabledMons.empty())
         return;
     for (const auto& [mon, wid] : Layout(*layout)) {
-        if (!mon || !mon->m_bEnabled || mon == exclude) {
+        if (!mon || !mon->m_enabled || mon == exclude) {
             // Let's try to find a "new" monitor which wasn't in
             // the layout before. If we don't find it, not much we can
             // do except for removing this monitor
@@ -186,7 +186,7 @@ Layout VirtualDesk::generateCurrentMonitorLayout() {
 }
 
 std::string VirtualDesk::monitorDesc(const CSharedPointer<CMonitor>& monitor) {
-    if (!monitor->output)
-        return monitor->szName;
-    return monitor->szDescription.empty() ? monitor->szName : monitor->szDescription;
+    if (!monitor->m_output)
+        return monitor->m_name;
+    return monitor->m_description.empty() ? monitor->m_name : monitor->m_description;
 }

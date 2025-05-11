@@ -60,26 +60,26 @@ bool isVerbose() {
 
 std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude) {
     std::vector<CSharedPointer<CMonitor>> monitors;
-    if (g_pCompositor->m_vMonitors.empty()) 
+    if (g_pCompositor->m_monitors.empty())
         return monitors;
-    
-    std::copy_if(g_pCompositor->m_vMonitors.begin(), g_pCompositor->m_vMonitors.end(), std::back_inserter(monitors), [&](const auto mon) {
+
+    std::copy_if(g_pCompositor->m_monitors.begin(), g_pCompositor->m_monitors.end(), std::back_inserter(monitors), [&](const auto mon) {
         if (!mon)
             return false;
 
-        if (g_pCompositor->m_pUnsafeOutput && g_pCompositor->m_pUnsafeOutput->szName == mon->szName)
+        if (g_pCompositor->m_unsafeOutput && g_pCompositor->m_unsafeOutput->m_name == mon->m_name)
             return false;
 
-        if (!mon->output)
+        if (!mon->m_output)
             return false;
 
-        if (mon->output->name == std::string("HEADLESS-1"))
+        if (mon->m_output->name == std::string("HEADLESS-1"))
             return false;
 
         if (mon == exclude)
             return false;
 
-        return mon->m_bEnabled;
+        return mon->m_enabled;
     });
     return monitors;
 }
