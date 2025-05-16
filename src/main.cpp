@@ -179,11 +179,11 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
 
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         return std::format(R"#({{
-            "virtualdesk": {{
-                "id": {},
-                "name": "{}"
-            }}
-        }})#",
+    "virtualdesk": {{
+        "id": {},
+        "name": "{}"
+    }}
+}})#",
                            vdeskId, vdeskName);
     }
     return "";
@@ -191,9 +191,11 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
 
 std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
     std::string out;
+    int         entries = 0;
+
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
         out += "Virtual desks\n";
-        int index = 0;
+
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
             std::string  workspaces;
@@ -209,11 +211,20 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
                     first = false;
                 workspaces += std::format("{}", workspaceId);
             }
-            out += std::format("- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n", desk->name, desk->id, manager->activeVdesk().get() == desk.get(),
+            out += std::format("- {}: {}\n  Focused: {}\n  Populated: {}\n  Workspaces: {}\n  Windows: {}\n\n", desk->name, desk->id, manager->activeVdesk().get() == desk.get(),
                                windows > 0, workspaces, windows);
-            if (index++ < manager->vdesksMap.size() - 1)
-                out += "\n";
+            entries++;
         }
+        for (const auto& [vdeskId, name] : manager->vdeskNamesMap) {
+            if (manager->vdesksMap.contains(vdeskId))
+                continue;
+            out += std::format("- {}: {}\n  Focused: false\n  Populated: false\n  Workspaces: \n  Windows: 0\n\n", name, vdeskId);
+            entries++;
+        }
+
+        // remove last newline
+        if (entries > 0)
+            out.pop_back();
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         std::string vdesks;
         int         index = 0;
@@ -232,18 +243,35 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
                     first = false;
                 workspaces += std::format("{}", workspaceId);
             }
-            vdesks += std::format(R"#({{
-                "id": {},
-                "name": "{}",
-                "focused": {},
-                "populated": {},
-                "workspaces": [{}],
-                "windows": {}
-            }})#",
-                                  vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
-            if (index++ < manager->vdesksMap.size() - 1)
-                vdesks += ",";
+            vdesks += std::format(
+                R"#({{
+    "id": {},
+    "name": "{}",
+    "focused": {},
+    "populated": {},
+    "workspaces": [{}],
+    "windows": {}
+}},)#",
+                vdeskId, desk->name, manager->activeVdesk().get() == desk.get(), windows > 0, workspaces, windows);
+            entries++;
         }
+        for (const auto& [vdeskId, name] : manager->vdeskNamesMap) {
+            if (manager->vdesksMap.contains(vdeskId))
+                continue;
+            vdesks += std::format(
+                R"#({{
+    "id": {},
+    "name": "{}",
+    "focused": false,
+    "populated": false,
+    "workspaces": [],
+    "windows": 0
+}},)#",
+                vdeskId, name);
+            entries++;
+        }
+        // remove last , since this wouldn't be valid json
+        vdesks.pop_back();
         out += std::format(R"#([{}])#", vdesks);
     }
     return out;
