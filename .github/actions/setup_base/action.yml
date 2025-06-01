@@ -1,5 +1,6 @@
 # Taken from Hyprland repo
-name: "Setup base"
+name: Setup base
+description: Set archlinux build environment up
 
 inputs:
   INSTALL_XORG_PKGS:
