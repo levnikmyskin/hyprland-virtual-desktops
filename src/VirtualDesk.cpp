@@ -103,15 +103,15 @@ CSharedPointer<CMonitor> VirtualDesk::deleteInvalidMonitor(const CSharedPointer<
 }
 
 void VirtualDesk::deleteInvalidMonitorsOnActiveLayout() {
-    Layout                              layout_copy(layouts[m_activeLayout_idx]);
-    auto                                enabledMonitors = currentlyEnabledMonitors();
-    std::unordered_set<CSharedPointer<CMonitor>>    enabledMonitors_set;
+    Layout                                       layout_copy(layouts[m_activeLayout_idx]);
+    auto                                         enabledMonitors = currentlyEnabledMonitors();
+    std::unordered_set<CSharedPointer<CMonitor>> enabledMonitors_set;
     for (const auto& mon : enabledMonitors) {
         enabledMonitors_set.insert(mon);
     }
     for (const auto& [mon, workspaceId] : layout_copy) {
         if (enabledMonitors_set.count(mon) <= 0) {
-            auto newMonitor                               = firstAvailableMonitor(enabledMonitors);
+            auto newMonitor                         = firstAvailableMonitor(enabledMonitors);
             layouts[m_activeLayout_idx][newMonitor] = workspaceId;
             layouts[m_activeLayout_idx].erase(newMonitor);
         }
