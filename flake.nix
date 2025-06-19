@@ -3,27 +3,36 @@
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-  # Hyprland at tag v0.49.0
-  inputs.hyprland.url = "github:hyprwm/Hyprland/9958d297641b5c84dcff93f9039d80a5ad37ab00";
-
   outputs = {
     self,
     nixpkgs,
-    hyprland,
   }: let
     # Helper function to create packages for each system
-    withPkgsFor = fn: nixpkgs.lib.genAttrs (builtins.attrNames hyprland.packages) (system: fn system nixpkgs.legacyPackages.${system});
-    virtualDesktops = withPkgsFor (system: pkgs:
+    forAllSystems = nixpkgs.lib.genAttrs ["x86_64-linux" "aarch64-linux"];
+    
+    virtualDesktops = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+      hyprland = pkgs.hyprland;
+    in
       pkgs.gcc14Stdenv.mkDerivation {
         pname = "virtual-desktops";
         version = "2.2.8";
         src = ./.;
 
-        inherit (hyprland.packages.${system}.hyprland) nativeBuildInputs;
+        inherit (hyprland) nativeBuildInputs;
 
-        buildInputs = [hyprland.packages.${system}.hyprland] ++ hyprland.packages.${system}.hyprland.buildInputs;
+        buildInputs = with pkgs; [
+          hyprland
+          hyprland.dev
+          libdrm
+          libinput
+          wayland
+          wayland-protocols
+          cairo
+          pango
+        ] ++ hyprland.buildInputs;
 
-        # Skip meson phases
+        # Skip meson phases since we're using make
         configurePhase = "true";
         mesonConfigurePhase = "true";
         mesonBuildPhase = "true";
@@ -50,24 +59,32 @@
         };
       });
   in {
-    packages = withPkgsFor (system: pkgs: rec {
+    packages = forAllSystems (system: rec {
       virtual-desktops = virtualDesktops.${system};
       default = virtual-desktops;
     });
 
-    devShells = withPkgsFor (system: pkgs: {
+    devShells = forAllSystems (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
       default = pkgs.mkShell.override {stdenv = pkgs.gcc14Stdenv;} {
         name = "virtual-desktops";
-        inputsFrom = [hyprland.packages.${system}.hyprland];
-        nativeBuildInputs = [pkgs.cmake];
+
+        inherit (pkgs.hyprland) nativeBuildInputs;
+
         buildInputs = with pkgs; [
+          hyprland
+          hyprland.dev
+          wayland
+          wayland-protocols
+          cairo
+          pango
+          wlroots
           clang
           clang-tools
-          nodejs # for copilot
+          nodejs
           include-what-you-use
           cpplint
-
-          hyprland.packages.${system}.hyprland
         ];
       };
     });
