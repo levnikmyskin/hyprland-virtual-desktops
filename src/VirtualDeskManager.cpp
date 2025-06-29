@@ -252,24 +252,66 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     vdesksMap[vdeskId]->resetLayout();
 }
 
-int VirtualDeskManager::prevDeskId(bool backwardCycle) {
-    int prevId = activeVdesk()->id - 1;
-    if (prevId < 1) {
-        prevId = 1;
-        if (backwardCycle) {
-            auto keys = std::views::keys(vdesksMap);
-            prevId    = std::ranges::max(keys);
-        }
+// Returns true if any workspace in the vdesk has at least one window
+bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
+    if (!vdesksMap.contains(vdeskId))
+        return false;
+    auto vdesk = vdesksMap[vdeskId];
+    for (const auto& [monitor, workspaceId] : vdesk->activeLayout(conf)) {
+        auto workspace = g_pCompositor->getWorkspaceByID(workspaceId);
+        if (workspace && workspace->getWindows() > 0)
+            return true;
     }
-    return prevId;
+    return false;
+}
+
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    // Read config: cycle_populated_only
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    bool populatedOnly = **PCYCLE_POPULATED_ONLY;
+
+    int currentId = activeVdesk()->id;
+    int candidateId = currentId;
+    auto keys = std::views::keys(vdesksMap);
+    int minId = std::ranges::min(keys);
+    int maxId = std::ranges::max(keys);
+    do {
+        candidateId--;
+        if (candidateId < minId) {
+            if (backwardCycle)
+                candidateId = maxId;
+            else
+                return minId;
+        }
+        // A desk must exist to be a candidate
+        if (vdesksMap.contains(candidateId) && (!populatedOnly || isDeskPopulated(candidateId)))
+            return candidateId;
+    } while (candidateId != currentId);
+    return currentId;
 }
 
 int VirtualDeskManager::nextDeskId(bool cycle) {
-    int nextId = activeVdesk()->id + 1;
-    if (cycle) {
-        nextId = vdesksMap.contains(nextId) ? nextId : 1;
-    }
-    return nextId;
+    // Read config: cycle_populated_only
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    bool populatedOnly = **PCYCLE_POPULATED_ONLY;
+
+    int currentId = activeVdesk()->id;
+    int candidateId = currentId;
+    auto keys = std::views::keys(vdesksMap);
+    int minId = std::ranges::min(keys);
+    int maxId = std::ranges::max(keys);
+    do {
+        candidateId++;
+        if (candidateId > maxId) {
+            if (cycle)
+                candidateId = minId;
+            else
+                return maxId;
+        }
+        if (vdesksMap.contains(candidateId) && (!populatedOnly || isDeskPopulated(candidateId)))
+            return candidateId;
+    } while (candidateId != currentId);
+    return currentId;
 }
 
 std::shared_ptr<VirtualDesk> VirtualDeskManager::getOrCreateVdesk(int vdeskId) {
