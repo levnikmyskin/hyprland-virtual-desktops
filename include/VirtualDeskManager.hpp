@@ -31,6 +31,9 @@ class VirtualDeskManager {
     int                                                   nextDeskId(bool cycle);
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
 
+    // Returns true if any workspace in the vdesk has at least one window
+    bool isDeskPopulated(int vdeskId);
+
   private:
     int                          m_activeDeskKey = 1;
     bool                         confLoaded      = false;
