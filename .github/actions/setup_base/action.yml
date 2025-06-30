@@ -18,7 +18,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Hyprland and dependencies
+    - name: Get required pacman pkgs
       shell: bash
       run: |
         sed -i 's/SigLevel    = Required DatabaseOptional/SigLevel    = Optional TrustAll/' /etc/pacman.conf
@@ -28,12 +28,14 @@ runs:
           cairo \
           clang \
           cmake \
+          cpio \
           git \
-          glaze \
           glm \
           glslang \
           go \
-          hyprland \
+          hyprlang \
+          hyprcursor \
+          hyprutils \
           jq \
           libc++ \
           libdisplay-info \
@@ -42,15 +44,12 @@ runs:
           libfontenc \
           libglvnd \
           libinput \
-          libjxl \
           libliftoff \
-          libspng \
-          libwebp \
-          libxcursor \
           libxcvt \
           libxfont2 \
           libxkbcommon \
           libxkbfile \
+          libxcursor \
           lld \
           meson \
           ninja \
@@ -71,7 +70,48 @@ runs:
           xcb-util-image \
           libzip \
           librsvg \
+          libwebp \
+          libspng \
+          libjxl \
+          libjpeg-turbo \
           re2
+
+    - name: Get hyprwayland-scanner-git
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/hyprwayland-scanner --recursive
+        cd hyprwayland-scanner
+        git checkout ${{ inputs.hyprwayland }} && git submodule update --recursive --init
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf NPROCESSORS_CONF`
+        cmake --install build
+
+    - name: Get hyprutils
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/hyprutils.git
+        cd hyprutils
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+        cmake --install build
+
+    - name: Get aquamarine
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/aquamarine.git
+        cd aquamarine
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+        cmake --install build
+
+    - name: Get hyprgraphics
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/hyprgraphics.git
+        cd hyprgraphics
+        cmake --no-warn-unused-cli -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr -S . -B ./build
+        cmake --build ./build --config Release --target all -j`nproc 2>/dev/null || getconf _NPROCESSORS_CONF`
+        cmake --install build
 
     - name: Get Xorg pacman pkgs
       shell: bash
@@ -84,8 +124,15 @@ runs:
           xorg-xkbcomp \
           xorg-xwayland
 
+    - name: Get Hyprland
+      shell: bash
+      run: |
+        git clone https://github.com/hyprwm/Hyprland.git --recursive
+        cd Hyprland
+        git checkout ${{ inputs.branch }} && git submodule update --recursive --init
+
     # Fix an issue with actions/checkout where the checkout repo is not mark as safe
     - name: Mark directory as safe for git
       shell: bash
       run: |
-        git config --global --add safe.directory /__w/hyprland-virtual-desktops/hyprland-virtual-desktops
+        git config --global --add safe.directory /__w/Hyprland/Hyprland
