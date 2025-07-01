@@ -1,9 +1,9 @@
 #include "VirtualDeskManager.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
-#include <ranges>
 #include <algorithm>
 #include <hyprland/src/managers/EventManager.hpp>
+#include <ranges>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -266,54 +266,57 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
     return false;
 }
 
-std::vector<int> VirtualDeskManager::getValidDeskIds() {
-    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    bool populatedOnly = **PCYCLE_POPULATED_ONLY;
-    
-    std::vector<int> validDesks;
-    int currentId = activeVdesk()->id;
-    
-    for (const auto& [id, _] : vdesksMap) {
-        if (!populatedOnly || isDeskPopulated(id) || id == currentId) {
-            validDesks.push_back(id);
-        }
-    }
-    std::sort(validDesks.begin(), validDesks.end());
-    return validDesks;
-}
-
-int VirtualDeskManager::cycleDeskId(bool forward, bool allowCycle) {
-    auto validDesks = getValidDeskIds();
-    if (validDesks.empty()) return activeVdesk()->id;
-    
-    int currentId = activeVdesk()->id;
-    auto it = std::find(validDesks.begin(), validDesks.end(), currentId);
-    
-    // Current desk is always in validDesks, so this should never happen
-    if (it == validDesks.end()) {
-        return currentId;
-    }
-    
-    if (forward) {
-        ++it;
-        if (it == validDesks.end()) {
-            return allowCycle ? validDesks.front() : currentId;
-        }
-        return *it;
-    } else {
-        if (it == validDesks.begin()) {
-            return allowCycle ? validDesks.back() : currentId;
-        }
-        return *(--it);
-    }
-}
-
 int VirtualDeskManager::prevDeskId(bool backwardCycle) {
-    return cycleDeskId(false, backwardCycle);
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
+
+    auto               cycle = getCyclingInfo(false);
+
+    while (cycle.candidateId >= cycle.minId) {
+        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
+            return cycle.candidateId;
+        cycle.candidateId--;
+    }
+
+    // If there's no other previous populated desk,
+    // we either return the maxId, if populated,
+    // or this is a no-op otherwise
+    if (populatedOnly) {
+        if (backwardCycle && isDeskPopulated(cycle.maxId))
+            return cycle.maxId;
+        return cycle.currentId;
+    }
+
+    return backwardCycle ? cycle.maxId : cycle.minId;
 }
 
-int VirtualDeskManager::nextDeskId(bool cycle) {
-    return cycleDeskId(true, cycle);
+int VirtualDeskManager::nextDeskId(bool backwardCycle) {
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
+
+    auto               cycle = getCyclingInfo(true);
+
+    while (cycle.candidateId <= cycle.maxId) {
+        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
+            return cycle.candidateId;
+        cycle.candidateId++;
+    }
+
+    // if we're here, it means there's no possible candidate
+    if (populatedOnly)
+        return backwardCycle && isDeskPopulated(cycle.minId) ? cycle.minId : cycle.currentId;
+
+    return backwardCycle ? cycle.minId : cycle.candidateId;
+}
+
+inline SCycling VirtualDeskManager::getCyclingInfo(bool forward) {
+    int  currentId   = activeVdesk()->id;
+    int  candidateId = forward ? currentId + 1 : currentId - 1;
+    auto keys        = std::views::keys(vdesksMap);
+    int  minId       = std::ranges::min(keys);
+    int  maxId       = std::ranges::max(keys);
+
+    return {currentId, candidateId, minId, maxId};
 }
 
 std::shared_ptr<VirtualDesk> VirtualDeskManager::getOrCreateVdesk(int vdeskId) {
