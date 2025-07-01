@@ -175,6 +175,7 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ------------------------------------------------ |
 | names           | map a vdesk id with a name                                                                                                                                                                                     | map[int:string], see below   | `names = 1:coding, 2:internet, 3:mail and chats` |
 | cycleworkspaces | if set to 1 and switching to the currently active vdesk, workspaces will be swapped between your monitors (see [swapactiveworkspaces](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers)) | `0` or `1`                   | `cycleworkspaces = 1`                            |
+| cycle_populated_only | if set to 1, `backcyclevdesks` and `cyclevdesks` will only cycle through virtual desktops that contain windows, defaults to 0                                                                                 | `0` or `1`                   | `cycle_populated_only = 1`                       |
 | rememberlayout  | chooses how layouts should be remembered (see [Layouts](#Layouts)), defaults to `size`                                                                                                                         | `none`, `size` or `monitors` | `remember = size`                                |
 | notifyinit      | chooses whether to display the startup notification, defaults to 1                                                                                                                                             | `0` or `1`                   | `notifyinit = 0`                                 |
 | verbose_logging | whether to log more stuff, defaults to 0                                                                                                                                                                       | `0` or `1`                   | `verbose_logging = 0`                            |
@@ -192,6 +193,7 @@ plugin {
     virtual-desktops {
         names = 1:coding, 2:internet, 3:mail and chats
         cycleworkspaces = 1
+        cycle_populated_only = 0
         rememberlayout = size
         notifyinit = 0
         verbose_logging = 0
@@ -309,6 +311,7 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
                     virtual-desktops {
                         names = 1:coding, 2:internet, 3:mail and chats
                         cycleworkspaces = 1
+                        cycle_populated_only = 0
                         rememberlayout = size
                         notifyinit = 0
                         verbose_logging = 0
