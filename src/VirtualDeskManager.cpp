@@ -1,8 +1,9 @@
 #include "VirtualDeskManager.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
-#include <ranges>
+#include <algorithm>
 #include <hyprland/src/managers/EventManager.hpp>
+#include <ranges>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -252,24 +253,94 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     vdesksMap[vdeskId]->resetLayout();
 }
 
-int VirtualDeskManager::prevDeskId(bool backwardCycle) {
-    int prevId = activeVdesk()->id - 1;
-    if (prevId < 1) {
-        prevId = 1;
-        if (backwardCycle) {
-            auto keys = std::views::keys(vdesksMap);
-            prevId    = std::ranges::max(keys);
-        }
+// Returns true if any workspace in the vdesk has at least one window
+bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
+    if (!vdesksMap.contains(vdeskId))
+        return false;
+    auto vdesk = vdesksMap[vdeskId];
+    for (const auto& [monitor, workspaceId] : vdesk->activeLayout(conf)) {
+        auto workspace = g_pCompositor->getWorkspaceByID(workspaceId);
+        if (workspace && workspace->getWindows() > 0)
+            return true;
     }
-    return prevId;
+    return false;
 }
 
-int VirtualDeskManager::nextDeskId(bool cycle) {
-    int nextId = activeVdesk()->id + 1;
-    if (cycle) {
-        nextId = vdesksMap.contains(nextId) ? nextId : 1;
+bool VirtualDeskManager::isPopulatedOnlyEnabled() {
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    return **PCYCLE_POPULATED_ONLY;
+}
+
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    bool populatedOnly = isPopulatedOnlyEnabled();
+
+    auto               cycle = getCyclingInfo(false);
+
+    while (cycle.candidateId >= cycle.minId) {
+        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
+            return cycle.candidateId;
+        cycle.candidateId--;
     }
-    return nextId;
+
+    // No valid desk found going backward - handle wrap-around or boundary
+    if (populatedOnly && backwardCycle) {
+        // When cycling enabled, search from end backward for highest populated desk
+        for (int i = cycle.maxId; i > cycle.currentId; i--) {
+            if (vdesksMap.count(i) && isDeskPopulated(i))
+                return i;
+        }
+    }
+    
+    // Either populated-only mode with no valid wrap target, or cycling disabled
+    if (populatedOnly || !backwardCycle)
+        return cycle.currentId;
+    
+    // Non-populated mode with cycling enabled - wrap to end
+    return cycle.maxId;
+}
+
+int VirtualDeskManager::nextDeskId(bool backwardCycle) {
+    bool populatedOnly = isPopulatedOnlyEnabled();
+
+    auto               cycle = getCyclingInfo(true);
+
+    while (cycle.candidateId <= cycle.maxId) {
+        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
+            return cycle.candidateId;
+        cycle.candidateId++;
+    }
+
+    // No valid desk found going forward - handle wrap-around or boundary  
+    if (populatedOnly && backwardCycle) {
+        // When cycling enabled, search from beginning forward for lowest populated desk
+        for (int i = cycle.minId; i < cycle.currentId; i++) {
+            if (vdesksMap.count(i) && isDeskPopulated(i))
+                return i;
+        }
+    }
+    
+    // Either populated-only mode with no valid wrap target, or cycling disabled
+    if (populatedOnly || !backwardCycle)
+        return cycle.currentId;
+    
+    // Non-populated mode with cycling enabled - wrap to beginning
+    return cycle.minId;
+}
+
+inline SCycling VirtualDeskManager::getCyclingInfo(bool forward) {
+    int currentId   = activeVdesk()->id;
+    int candidateId = forward ? currentId + 1 : currentId - 1;
+    
+    // Defensive check for empty vdesksMap
+    if (vdesksMap.empty()) {
+        return {currentId, currentId, currentId, currentId};
+    }
+    
+    auto keys = std::views::keys(vdesksMap);
+    int  minId = std::ranges::min(keys);
+    int  maxId = std::ranges::max(keys);
+
+    return {currentId, candidateId, minId, maxId};
 }
 
 std::shared_ptr<VirtualDesk> VirtualDeskManager::getOrCreateVdesk(int vdeskId) {
