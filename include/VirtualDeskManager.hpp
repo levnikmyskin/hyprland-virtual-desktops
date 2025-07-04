@@ -48,5 +48,6 @@ class VirtualDeskManager {
     std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
     CSharedPointer<CMonitor>     getFocusedMonitor();
     inline SCycling              getCyclingInfo(bool forward);
+    bool                         isPopulatedOnlyEnabled();
 };
 #endif

@@ -266,9 +266,13 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
     return false;
 }
 
-int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+bool VirtualDeskManager::isPopulatedOnlyEnabled() {
     static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
+    return **PCYCLE_POPULATED_ONLY;
+}
+
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    bool populatedOnly = isPopulatedOnlyEnabled();
 
     auto               cycle = getCyclingInfo(false);
 
@@ -278,21 +282,25 @@ int VirtualDeskManager::prevDeskId(bool backwardCycle) {
         cycle.candidateId--;
     }
 
-    // If there's no other previous populated desk,
-    // we either return the maxId, if populated,
-    // or this is a no-op otherwise
-    if (populatedOnly) {
-        if (backwardCycle && isDeskPopulated(cycle.maxId))
-            return cycle.maxId;
-        return cycle.currentId;
+    // No valid desk found going backward - handle wrap-around or boundary
+    if (populatedOnly && backwardCycle) {
+        // When cycling enabled, search from end backward for highest populated desk
+        for (int i = cycle.maxId; i > cycle.currentId; i--) {
+            if (vdesksMap.count(i) && isDeskPopulated(i))
+                return i;
+        }
     }
-
-    return backwardCycle ? cycle.maxId : cycle.minId;
+    
+    // Either populated-only mode with no valid wrap target, or cycling disabled
+    if (populatedOnly || !backwardCycle)
+        return cycle.currentId;
+    
+    // Non-populated mode with cycling enabled - wrap to end
+    return cycle.maxId;
 }
 
 int VirtualDeskManager::nextDeskId(bool backwardCycle) {
-    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
+    bool populatedOnly = isPopulatedOnlyEnabled();
 
     auto               cycle = getCyclingInfo(true);
 
@@ -302,19 +310,35 @@ int VirtualDeskManager::nextDeskId(bool backwardCycle) {
         cycle.candidateId++;
     }
 
-    // if we're here, it means there's no possible candidate
-    if (populatedOnly)
-        return backwardCycle && isDeskPopulated(cycle.minId) ? cycle.minId : cycle.currentId;
-
-    return backwardCycle ? cycle.minId : cycle.candidateId;
+    // No valid desk found going forward - handle wrap-around or boundary  
+    if (populatedOnly && backwardCycle) {
+        // When cycling enabled, search from beginning forward for lowest populated desk
+        for (int i = cycle.minId; i < cycle.currentId; i++) {
+            if (vdesksMap.count(i) && isDeskPopulated(i))
+                return i;
+        }
+    }
+    
+    // Either populated-only mode with no valid wrap target, or cycling disabled
+    if (populatedOnly || !backwardCycle)
+        return cycle.currentId;
+    
+    // Non-populated mode with cycling enabled - wrap to beginning
+    return cycle.minId;
 }
 
 inline SCycling VirtualDeskManager::getCyclingInfo(bool forward) {
-    int  currentId   = activeVdesk()->id;
-    int  candidateId = forward ? currentId + 1 : currentId - 1;
-    auto keys        = std::views::keys(vdesksMap);
-    int  minId       = std::ranges::min(keys);
-    int  maxId       = std::ranges::max(keys);
+    int currentId   = activeVdesk()->id;
+    int candidateId = forward ? currentId + 1 : currentId - 1;
+    
+    // Defensive check for empty vdesksMap
+    if (vdesksMap.empty()) {
+        return {currentId, currentId, currentId, currentId};
+    }
+    
+    auto keys = std::views::keys(vdesksMap);
+    int  minId = std::ranges::min(keys);
+    int  maxId = std::ranges::max(keys);
 
     return {currentId, candidateId, minId, maxId};
 }
