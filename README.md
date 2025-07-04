@@ -34,6 +34,8 @@ Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:m
       - [Example](#example-2)
   - [Install](#install)
     - [Installing on NixOS with home—manager](#installing-on-nixos-with-homemanager)
+  - [Waybar Integration](#waybar-integration)
+    - [waybar-vd](#waybar-vd)
   - [Help, Hyprland is being weird!](#help-hyprland-is-being-weird)
     - [It's actually the plugin 😱](#its-actually-the-plugin-)
   - [Thanks to](#thanks-to)
@@ -335,6 +337,14 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
     };
 }
 ```
+## Waybar Integration
+
+### waybar-vd
+
+A Waybar CFFI module written in Rust that displays virtual desktops in the status bar. The module connects to Hyprland's IPC socket to monitor virtual desktop state changes and provides click handling for desktop switching.
+
+**Repository**: [waybar-vd](https://github.com/givani30/waybar-vd)
+
 
 ## Help, Hyprland is being weird!
 
@@ -345,6 +355,7 @@ I've noticed that, sometimes, when disconnecting or reconnecting monitors, there
 
 If instead you're seeing weird behaviour with the plugin itself, remember you can always run:  
 `hyprctl dispatch vdeskreset`
+
 
 ## Thanks to
 
