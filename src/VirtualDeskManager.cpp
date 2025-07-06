@@ -266,55 +266,72 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
     return false;
 }
 
-int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+bool VirtualDeskManager::isPopulatedOnlyEnabled() {
     static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
-
-    auto               cycle = getCyclingInfo(false);
-
-    while (cycle.candidateId >= cycle.minId) {
-        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
-            return cycle.candidateId;
-        cycle.candidateId--;
-    }
-
-    // If there's no other previous populated desk,
-    // we either return the maxId, if populated,
-    // or this is a no-op otherwise
-    if (populatedOnly) {
-        if (backwardCycle && isDeskPopulated(cycle.maxId))
-            return cycle.maxId;
-        return cycle.currentId;
-    }
-
-    return backwardCycle ? cycle.maxId : cycle.minId;
+    return **PCYCLE_POPULATED_ONLY;
 }
 
-int VirtualDeskManager::nextDeskId(bool backwardCycle) {
-    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    bool               populatedOnly         = **PCYCLE_POPULATED_ONLY;
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    return cycleDeskId(false, backwardCycle);
+}
 
-    auto               cycle = getCyclingInfo(true);
+int VirtualDeskManager::nextDeskId(bool cycle) {
+    return cycleDeskId(true, cycle);
+}
 
-    while (cycle.candidateId <= cycle.maxId) {
-        if (!populatedOnly || isDeskPopulated(cycle.candidateId))
-            return cycle.candidateId;
-        cycle.candidateId++;
+int VirtualDeskManager::cycleDeskId(bool forward, bool allowCycle) {
+    bool populatedOnly = isPopulatedOnlyEnabled();
+    auto cycle = getCyclingInfo(forward);
+    
+    int step = forward ? 1 : -1;
+    int current = cycle.candidateId;
+    
+    // Try each desk in sequence
+    for (int i = 0; i < (cycle.maxId - cycle.minId + 1); i++) {
+        // Forward cycling: allow creation of new desks when cycle=false
+        if (forward && !allowCycle && current > cycle.maxId) {
+            // Don't create if current desk is empty (avoid double empty desks)
+            if (!isDeskPopulated(cycle.currentId)) {
+                return cycle.currentId;
+            }
+            return current;
+        }
+        
+        // Check if current desk is valid
+        if (current >= cycle.minId && current <= cycle.maxId && 
+            vdesksMap.count(current) && 
+            (!populatedOnly || isDeskPopulated(current))) {
+            return current;
+        }
+        
+        // Move to next position
+        current += step;
+        
+        // Handle wrap-around
+        if (allowCycle) {
+            if (current > cycle.maxId) current = cycle.minId;
+            else if (current < cycle.minId) current = cycle.maxId;
+        } else {
+            // No cycling - stop at boundaries
+            if (current > cycle.maxId || current < cycle.minId) break;
+        }
     }
-
-    // if we're here, it means there's no possible candidate
-    if (populatedOnly)
-        return backwardCycle && isDeskPopulated(cycle.minId) ? cycle.minId : cycle.currentId;
-
-    return backwardCycle ? cycle.minId : cycle.candidateId;
+    
+    return cycle.currentId; // No valid desk found
 }
 
 inline SCycling VirtualDeskManager::getCyclingInfo(bool forward) {
-    int  currentId   = activeVdesk()->id;
-    int  candidateId = forward ? currentId + 1 : currentId - 1;
-    auto keys        = std::views::keys(vdesksMap);
-    int  minId       = std::ranges::min(keys);
-    int  maxId       = std::ranges::max(keys);
+    int currentId   = activeVdesk()->id;
+    int candidateId = forward ? currentId + 1 : currentId - 1;
+    
+    // Defensive check for empty vdesksMap
+    if (vdesksMap.empty()) {
+        return {currentId, currentId, currentId, currentId};
+    }
+    
+    auto keys = std::views::keys(vdesksMap);
+    int  minId = std::ranges::min(keys);
+    int  maxId = std::ranges::max(keys);
 
     return {currentId, candidateId, minId, maxId};
 }
