@@ -267,7 +267,7 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
 }
 
 bool VirtualDeskManager::isPopulatedOnlyEnabled() {
-    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
     return **PCYCLE_POPULATED_ONLY;
 }
 
