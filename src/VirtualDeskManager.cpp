@@ -266,10 +266,6 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
     return false;
 }
 
-bool VirtualDeskManager::isPopulatedOnlyEnabled() {
-    auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
-    return **PCYCLE_POPULATED_ONLY;
-}
 
 int VirtualDeskManager::prevDeskId(bool backwardCycle) {
     return cycleDeskId(false, backwardCycle);
@@ -280,7 +276,8 @@ int VirtualDeskManager::nextDeskId(bool cycle) {
 }
 
 int VirtualDeskManager::cycleDeskId(bool forward, bool allowCycle) {
-    bool populatedOnly = isPopulatedOnlyEnabled();
+    static auto* const PCYCLE_POPULATED_ONLY = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLE_POPULATED_ONLY_CONF)->getDataStaticPtr();
+    bool populatedOnly = **PCYCLE_POPULATED_ONLY;
     auto cycle = getCyclingInfo(forward);
     
     int step = forward ? 1 : -1;
