@@ -5,6 +5,13 @@
 
 #include "VirtualDesk.hpp"
 
+struct SCycling {
+    int currentId;
+    int candidateId;
+    int minId;
+    int maxId;
+};
+
 class VirtualDeskManager {
 
   public:
@@ -31,11 +38,16 @@ class VirtualDeskManager {
     int                                                   nextDeskId(bool cycle);
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
 
+    // Returns true if any workspace in the vdesk has at least one window
+    bool isDeskPopulated(int vdeskId);
+
   private:
     int                          m_activeDeskKey = 1;
     bool                         confLoaded      = false;
     void                         cycleWorkspaces();
     std::shared_ptr<VirtualDesk> getOrCreateVdesk(int vdeskId);
-    CSharedPointer<CMonitor>                              getFocusedMonitor();
+    CSharedPointer<CMonitor>     getFocusedMonitor();
+    inline SCycling              getCyclingInfo(bool forward);
+    int                          cycleDeskId(bool forward, bool allowCycle);
 };
 #endif
