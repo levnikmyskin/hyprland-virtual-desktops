@@ -3,6 +3,7 @@
 #define UTILS_H
 
 #include <hyprland/src/debug/Log.hpp>
+#include "globals.hpp"
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
