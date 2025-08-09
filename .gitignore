@@ -5,3 +5,5 @@ compile_commands.json
 result/
 .idea
 build
+.envrc
+.direnv
