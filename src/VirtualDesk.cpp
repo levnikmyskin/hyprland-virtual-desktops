@@ -96,6 +96,7 @@ CSharedPointer<CMonitor> VirtualDesk::deleteInvalidMonitor(const CSharedPointer<
             if (newMonitor)
                 layouts[m_activeLayout_idx][newMonitor] = workspaceId;
             layouts[m_activeLayout_idx].erase(monitor);
+            forgetMonitor(monitor);
             return newMonitor;
         }
     }
@@ -114,6 +115,7 @@ void VirtualDesk::deleteInvalidMonitorsOnActiveLayout() {
             auto newMonitor                         = firstAvailableMonitor(enabledMonitors);
             layouts[m_activeLayout_idx][newMonitor] = workspaceId;
             layouts[m_activeLayout_idx].erase(newMonitor);
+            forgetMonitor(mon);
         }
     }
 }
@@ -142,6 +144,29 @@ bool VirtualDesk::isWorkspaceOnActiveLayout(WORKSPACEID workspaceId) {
     return false;
 }
 
+void VirtualDesk::rememberFocusedMonitor(const CSharedPointer<CMonitor>& monitor) {
+    if (!monitor || !monitor->m_enabled || !monitor->m_output)
+        return;
+    m_lastFocusedMonitor = monitor;
+}
+
+CSharedPointer<CMonitor> VirtualDesk::lastFocusedMonitor() {
+    auto monitor = m_lastFocusedMonitor.lock();
+    if (!monitor || !monitor->m_enabled || !monitor->m_output)
+        return nullptr;
+    if (!layouts.empty() && !layouts[m_activeLayout_idx].contains(monitor))
+        return nullptr;
+    return monitor;
+}
+
+void VirtualDesk::forgetMonitor(const CSharedPointer<CMonitor>& monitor) {
+    if (!monitor)
+        return;
+    auto stored = m_lastFocusedMonitor.lock();
+    if (stored && stored == monitor)
+        m_lastFocusedMonitor.reset();
+}
+
 void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CSharedPointer<CMonitor>& exclude) {
     auto enabledMons = currentlyEnabledMonitors(exclude);
     if (enabledMons.empty())
@@ -156,10 +181,12 @@ void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CSharedPointer<CMoni
                 if (!layout->contains(enabledMon)) {
                     (*layout)[enabledMon] = wid;
                     (*layout).erase(mon);
+                    forgetMonitor(mon);
                     return;
                 }
             }
             (*layout).erase(mon);
+            forgetMonitor(mon);
         }
     }
 }
