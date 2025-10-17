@@ -7,9 +7,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <hyprland/src/helpers/Monitor.hpp>
 #include "globals.hpp"
 #include "utils.hpp"
+#include "FocusMemory.hpp"
+#include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprland/src/Compositor.hpp>
 
 using namespace Hyprutils::Memory;
@@ -62,6 +63,6 @@ class VirtualDesk {
     Layout             generateCurrentMonitorLayout();
     static std::string monitorDesc(const CSharedPointer<CMonitor>&);
     void               checkAndAdaptLayout(Layout*, const CSharedPointer<CMonitor>& exclude = nullptr);
-    CWeakPointer<CMonitor> m_lastFocusedMonitor;
+    FocusMemory<CMonitor, Hyprutils::Memory::CSharedPointer, Hyprutils::Memory::CWeakPointer> m_focusMemory;
 };
 #endif

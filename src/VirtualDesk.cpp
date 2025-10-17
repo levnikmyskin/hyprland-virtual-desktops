@@ -147,24 +147,21 @@ bool VirtualDesk::isWorkspaceOnActiveLayout(WORKSPACEID workspaceId) {
 void VirtualDesk::rememberFocusedMonitor(const CSharedPointer<CMonitor>& monitor) {
     if (!monitor || !monitor->m_enabled || !monitor->m_output)
         return;
-    m_lastFocusedMonitor = monitor;
+    m_focusMemory.remember(monitor);
 }
 
 CSharedPointer<CMonitor> VirtualDesk::lastFocusedMonitor() {
-    auto monitor = m_lastFocusedMonitor.lock();
-    if (!monitor || !monitor->m_enabled || !monitor->m_output)
-        return nullptr;
-    if (!layouts.empty() && !layouts[m_activeLayout_idx].contains(monitor))
-        return nullptr;
-    return monitor;
+    return m_focusMemory.recall([&](const CSharedPointer<CMonitor>& monitor) {
+        if (!monitor || !monitor->m_enabled || !monitor->m_output)
+            return false;
+        if (layouts.empty())
+            return false;
+        return layouts[m_activeLayout_idx].contains(monitor);
+    });
 }
 
 void VirtualDesk::forgetMonitor(const CSharedPointer<CMonitor>& monitor) {
-    if (!monitor)
-        return;
-    auto stored = m_lastFocusedMonitor.lock();
-    if (stored && stored == monitor)
-        m_lastFocusedMonitor.reset();
+    m_focusMemory.forget(monitor);
 }
 
 void VirtualDesk::checkAndAdaptLayout(Layout* layout, const CSharedPointer<CMonitor>& exclude) {

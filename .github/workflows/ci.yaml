@@ -49,3 +49,8 @@ jobs:
           PKG_CONFIG_PATH: "/usr/local/share/pkgconfig/"
         run: |
           make all
+
+      - name: Run unit tests
+        run: |
+          cd build
+          ctest --output-on-failure
