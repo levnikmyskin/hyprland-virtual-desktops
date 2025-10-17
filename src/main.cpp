@@ -325,15 +325,25 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     if (monitorLayoutChanging)
         return;
     auto        workspace   = std::any_cast<PHLWORKSPACE>(val);
-    WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_id;
+    WORKSPACEID workspaceID = workspace->m_id;
 
     auto        monitor = workspace->m_monitor.lock();
     if (!monitor || !monitor->m_enabled)
         return;
 
-    manager->activeVdesk()->changeWorkspaceOnMonitor(workspaceID, monitor);
+    auto activeDesk = manager->activeVdesk();
+    auto monitors   = currentlyEnabledMonitors();
+    if (!monitors.empty()) {
+        int expectedDesk = deskIdFromWorkspace(workspaceID, monitors.size());
+        if (expectedDesk != activeDesk->id) {
+            manager->changeActiveDesk(expectedDesk, true);
+            return;
+        }
+    }
+
+    activeDesk->changeWorkspaceOnMonitor(workspaceID, monitor);
     if (isVerbose()) {
-        auto vdesk = manager->activeVdesk();
+        auto vdesk = activeDesk;
         printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspaceID) + "; on monitor " + std::to_string(monitor->m_id));
     }
 }
