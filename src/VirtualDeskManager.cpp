@@ -23,13 +23,16 @@ void VirtualDeskManager::changeActiveDesk(std::string& arg, bool apply) {
 }
 
 void VirtualDeskManager::changeActiveDesk(int vdeskId, bool apply) {
-    if (vdeskId == activeVdesk()->id) {
+    auto currentDesk = activeVdesk();
+    currentDesk->rememberFocusedMonitor(getFocusedMonitor());
+
+    if (vdeskId == currentDesk->id) {
         cycleWorkspaces();
         return;
     }
 
     getOrCreateVdesk(vdeskId);
-    lastDesk        = activeVdesk()->id;
+    lastDesk        = currentDesk->id;
     m_activeDeskKey = vdeskId;
     if (apply)
         applyCurrentVDesk();
@@ -56,10 +59,18 @@ void VirtualDeskManager::applyCurrentVDesk() {
         printLog("There are no monitors!");
         return;
     }
+
     if (isVerbose())
         printLog("applying vdesk" + activeVdesk()->name);
-    auto         currentMonitor   = getFocusedMonitor();
-    auto         layout           = activeVdesk()->activeLayout(conf);
+
+    auto         layout         = activeVdesk()->activeLayout(conf);
+    auto         storedMonitor  = activeVdesk()->lastFocusedMonitor();
+    auto         currentMonitor = storedMonitor ? storedMonitor : getFocusedMonitor();
+    if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output || !layout.contains(currentMonitor)))
+        currentMonitor = nullptr;
+    if (!currentMonitor && !layout.empty())
+        currentMonitor = layout.begin()->first;
+
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [lmon, workspaceId] : layout) {
         CSharedPointer<CMonitor> mon = lmon;
@@ -91,6 +102,9 @@ void VirtualDeskManager::applyCurrentVDesk() {
     }
     if (currentMonitor && focusedWorkspace)
         currentMonitor->changeWorkspace(focusedWorkspace, false);
+
+    if (currentMonitor)
+        activeVdesk()->rememberFocusedMonitor(currentMonitor);
 
     g_pEventManager->postEvent(SHyprIPCEvent{VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey)});
 }

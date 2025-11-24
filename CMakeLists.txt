@@ -41,3 +41,16 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
 target_link_libraries(hyprland-virtual-desktops PRIVATE rt PkgConfig::deps)
 
 install(TARGETS hyprland-virtual-desktops)
+
+enable_testing()
+add_executable(focus_memory_test tests/focus_memory_test.cpp)
+target_include_directories(focus_memory_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${deps_INCLUDE_DIRS})
+add_test(NAME focus_memory_test COMMAND focus_memory_test)
+
+add_executable(utils_test tests/utils_test.cpp)
+target_include_directories(utils_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${deps_INCLUDE_DIRS})
+add_test(NAME utils_test COMMAND utils_test)
+
+add_executable(layout_utils_property_test tests/layout_utils_property_test.cpp)
+target_include_directories(layout_utils_property_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include ${deps_INCLUDE_DIRS})
+add_test(NAME layout_utils_property_test COMMAND layout_utils_property_test)

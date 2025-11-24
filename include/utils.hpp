@@ -2,8 +2,9 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <hyprland/src/debug/Log.hpp>
 #include "globals.hpp"
+#include "layout_utils.hpp"
+#include <hyprland/src/debug/Log.hpp>
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
@@ -60,6 +61,9 @@ void                                  printLog(std::string s, eLogLevel level = 
 std::string                           parseMoveDispatch(std::string& arg);
 bool                                  extractBool(std::string& arg);
 std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude = nullptr);
+inline int                            deskIdFromWorkspace(WORKSPACEID workspaceId, size_t monitorCount) {
+    return deskIdFromWorkspaceRaw(static_cast<long>(workspaceId), monitorCount);
+}
 
 std::string                           ltrim(const std::string& s);
 std::string                           rtrim(const std::string& s);
