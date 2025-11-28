@@ -52,6 +52,7 @@ runs:
           libxcursor \
           lld \
           meson \
+          muparser \
           ninja \
           pango \
           pixman \
