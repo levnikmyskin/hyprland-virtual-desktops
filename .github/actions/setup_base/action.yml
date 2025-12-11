@@ -36,6 +36,7 @@ runs:
           hyprlang \
           hyprcursor \
           hyprutils \
+          hyprwire \
           jq \
           libc++ \
           libdisplay-info \
