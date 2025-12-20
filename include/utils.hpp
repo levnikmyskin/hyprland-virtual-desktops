@@ -2,11 +2,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <hyprland/src/debug/Log.hpp>
-#include "globals.hpp"
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
+#include <hyprutils/cli/Logger.hpp>
 
 using namespace Hyprutils::Memory;
 
@@ -55,7 +54,7 @@ enum RememberLayoutConf {
 
 RememberLayoutConf                    layoutConfFromInt(const int64_t);
 RememberLayoutConf                    layoutConfFromString(const std::string& conf);
-void                                  printLog(std::string s, eLogLevel level = INFO);
+void                                  printLog(std::string s, Hyprutils::CLI::eLogLevel level = Log::INFO);
 
 std::string                           parseMoveDispatch(std::string& arg);
 bool                                  extractBool(std::string& arg);

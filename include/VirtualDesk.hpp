@@ -8,7 +8,6 @@
 #include <unordered_set>
 
 #include <hyprland/src/helpers/Monitor.hpp>
-#include "globals.hpp"
 #include "utils.hpp"
 #include <hyprland/src/Compositor.hpp>
 
