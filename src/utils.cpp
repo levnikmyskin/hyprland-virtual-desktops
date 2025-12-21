@@ -1,4 +1,5 @@
 #include "utils.hpp"
+#include "globals.hpp"
 
 void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
     // #ifdef DEBUG

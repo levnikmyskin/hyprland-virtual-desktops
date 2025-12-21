@@ -1,4 +1,5 @@
 #include "VirtualDesk.hpp"
+#include "globals.hpp"
 #include "src/Compositor.hpp"
 #include <algorithm>
 #include <unordered_set>

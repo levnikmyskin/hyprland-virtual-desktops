@@ -1,4 +1,5 @@
 #include "VirtualDeskManager.hpp"
+#include "globals.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
