@@ -1,9 +1,8 @@
 #include "VirtualDesk.hpp"
+#include "globals.hpp"
 #include "src/Compositor.hpp"
-#include <numeric>
 #include <algorithm>
 #include <unordered_set>
-#include <format>
 
 VirtualDesk::VirtualDesk(int id, std::string name) {
     this->id   = id;
