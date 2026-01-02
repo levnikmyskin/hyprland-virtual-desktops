@@ -1,8 +1,10 @@
 #include "VirtualDeskManager.hpp"
+#include "globals.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
 #include <hyprland/src/managers/EventManager.hpp>
+#include <hyprland/src/desktop/state/FocusState.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -120,11 +122,11 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // monitor of the target window
     // if no arg is provided, it's the currently focussed monitor and otherwise
     // it's the monitor of the window matched by the arg regex
-    PHLMONITORREF monitor = g_pCompositor->m_lastMonitor;
+    PHLMONITORREF monitor = Desktop::focusState()->monitor();
     if (arg != "") {
         PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
         if (!window) {
-            printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
+            printLog(std::format("Window {} does not exist???", arg), Log::ERR);
         } else {
             monitor = window->m_monitor;
         }
@@ -188,7 +190,7 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto                     n_monitors     = g_pCompositor->m_monitors.size();
-    CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor.lock();
+    CSharedPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
@@ -240,12 +242,12 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     } catch (std::exception const& ex) { vdeskId = getDeskIdFromName(arg, false); }
 
     if (vdeskId == -1) {
-        printLog("Reset vdesk: " + arg + " not found", eLogLevel::WARN);
+        printLog("Reset vdesk: " + arg + " not found", Log::WARN);
         return;
     }
 
     if (!vdesksMap.contains(vdeskId)) {
-        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", eLogLevel::ERR);
+        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", Log::ERR);
         return;
     }
 
@@ -291,7 +293,7 @@ void VirtualDeskManager::invalidateAllLayouts() {
 }
 
 CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor;
+    CWeakPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output)) {

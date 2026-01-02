@@ -1,10 +1,11 @@
 #include "utils.hpp"
+#include "globals.hpp"
 
-void printLog(std::string s, eLogLevel level) {
+void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
     // #ifdef DEBUG
     //     std::cout << "[virtual-desktops] " + s << std::endl;
     // #endif
-    Debug::log(level, "[virtual-desktops] {}", s);
+    Log::logger->log(level, "[virtual-desktops] {}", s);
 }
 
 std::string parseMoveDispatch(std::string& arg) {

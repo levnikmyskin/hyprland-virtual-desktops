@@ -36,6 +36,7 @@ runs:
           hyprlang \
           hyprcursor \
           hyprutils \
+          hyprwire \
           jq \
           libc++ \
           libdisplay-info \
@@ -52,6 +53,7 @@ runs:
           libxcursor \
           lld \
           meson \
+          muparser \
           ninja \
           pango \
           pixman \

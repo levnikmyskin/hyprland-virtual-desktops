@@ -3,8 +3,6 @@
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/helpers/MiscFunctions.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
-#include <hyprland/src/debug/Log.hpp>
-#include <hyprland/src/events/Events.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -227,7 +225,6 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             out.pop_back();
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         std::string vdesks;
-        int         index = 0;
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
             std::string  workspaces;
@@ -441,10 +438,10 @@ APICALL EXPORT std::string PLUGIN_API_VERSION() {
 }
 
 APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
-    PHANDLE                = handle;
+    PHANDLE = handle;
 
     const std::string COMPOSITOR_HASH = __hyprland_api_get_hash();
-    const std::string CLIENT_HASH = __hyprland_api_get_client_hash();
+    const std::string CLIENT_HASH     = __hyprland_api_get_client_hash();
 
     // ALWAYS add this to your plugins. It will prevent random crashes coming from
     // mismatched header versions.
