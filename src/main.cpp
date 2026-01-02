@@ -3,8 +3,16 @@
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/helpers/MiscFunctions.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
-#include <hyprland/src/debug/Log.hpp>
-#include <hyprland/src/events/Events.hpp>
+#if __has_include(<hyprland/src/debug/log/Logger.hpp>)
+  #include <hyprland/src/debug/log/Logger.hpp>
+#else
+  #include <hyprland/src/debug/Log.hpp>
+#endif
+#if __has_include(<hyprland/src/events/Events.hpp>)
+  #include <hyprland/src/events/Events.hpp>
+#else
+  #include <hyprland/src/managers/EventManager.hpp>
+#endif
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"

@@ -120,11 +120,11 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // monitor of the target window
     // if no arg is provided, it's the currently focussed monitor and otherwise
     // it's the monitor of the window matched by the arg regex
-    PHLMONITORREF monitor = g_pCompositor->m_lastMonitor;
+    PHLMONITORREF monitor = g_pCompositor->getMonitorFromCursor();
     if (arg != "") {
         PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
         if (!window) {
-            printLog(std::format("Window {} does not exist???", arg), eLogLevel::ERR);
+            printLog(std::format("Window {} does not exist???", arg), Hyprutils::CLI::eLogLevel::LOG_ERR);
         } else {
             monitor = window->m_monitor;
         }
@@ -188,7 +188,7 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto                     n_monitors     = g_pCompositor->m_monitors.size();
-    CSharedPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor.lock();
+    auto currentMonitor = g_pCompositor->getMonitorFromCursor();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
@@ -240,12 +240,12 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     } catch (std::exception const& ex) { vdeskId = getDeskIdFromName(arg, false); }
 
     if (vdeskId == -1) {
-        printLog("Reset vdesk: " + arg + " not found", eLogLevel::WARN);
+        printLog("Reset vdesk: " + arg + " not found", Hyprutils::CLI::eLogLevel::LOG_WARN);
         return;
     }
 
     if (!vdesksMap.contains(vdeskId)) {
-        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", eLogLevel::ERR);
+        printLog("Reset vdesk: " + arg + " not found in map. This should not happen :O", Hyprutils::CLI::eLogLevel::LOG_ERR);
         return;
     }
 
@@ -291,7 +291,7 @@ void VirtualDeskManager::invalidateAllLayouts() {
 }
 
 CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<CMonitor> currentMonitor = g_pCompositor->m_lastMonitor;
+    PHLMONITORREF currentMonitor = g_pCompositor->getMonitorFromCursor();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output)) {
