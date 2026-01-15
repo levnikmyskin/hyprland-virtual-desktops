@@ -348,7 +348,7 @@ A Waybar CFFI module written in Rust that displays virtual desktops in the statu
 
 ### noctalia-virtual-desktops
 
-A noctalia plugin for `hyprland-virtual-desktops`. The plugin support display `Virtual Desktops` in bar like official's `Workspace`.
+A noctalia plugin for `hyprland-virtual-desktops`. The plugin supports displaying `Virtual Desktops` in the bar like the official `Workspace`.
 
 **Repository**: [noctalia-virtual-desktops](https://github.com/AbaoFromCUG/noctalia-virtual-desktops)
 
