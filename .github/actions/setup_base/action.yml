@@ -3,17 +3,17 @@ name: "Setup base"
 
 inputs:
   INSTALL_XORG_PKGS:
-    description: 'Install xorg dependencies'
+    description: "Install xorg dependencies"
     required: false
     default: false
   branch:
-    description: 'Hyprland branch to checkout'
+    description: "Hyprland branch to checkout"
     required: false
-    default: 'main'
+    default: "main"
   hyprwayland:
-    description: 'Hyprwayland branch to checkout'
+    description: "Hyprwayland branch to checkout"
     required: false
-    default: 'main'
+    default: "main"
 
 runs:
   using: "composite"
@@ -30,6 +30,7 @@ runs:
           cmake \
           cpio \
           git \
+          glaze \
           glm \
           glslang \
           go \
