@@ -337,13 +337,20 @@ Here is an example flake that you can modify to add hyprland-virtual-desktops to
     };
 }
 ```
-## Waybar Integration
+## Integration
 
 ### waybar-vd
 
 A Waybar CFFI module written in Rust that displays virtual desktops in the status bar. The module connects to Hyprland's IPC socket to monitor virtual desktop state changes and provides click handling for desktop switching.
 
 **Repository**: [waybar-vd](https://github.com/givani30/waybar-vd)
+
+
+### noctalia-virtual-desktops
+
+A noctalia plugin for `hyprland-virtual-desktops`. The plugin supports displaying `Virtual Desktops` in the bar like the official `Workspace`.
+
+**Repository**: [noctalia-virtual-desktops](https://github.com/AbaoFromCUG/noctalia-virtual-desktops)
 
 
 ## Help, Hyprland is being weird!
