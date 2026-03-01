@@ -3,6 +3,7 @@
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/helpers/MiscFunctions.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/event/EventBus.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -14,13 +15,13 @@
 
 using namespace Hyprutils::Memory;
 
-static CSharedPointer<HOOK_CALLBACK_FN> onWorkspaceChangeHook   = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onWindowOpenHook        = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onConfigReloadedHook    = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onPreMonitorAddedHook   = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onMonitorAddedHook      = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onPreMonitorRemovedHook = nullptr;
-static CSharedPointer<HOOK_CALLBACK_FN> onMonitorRemovedHook    = nullptr;
+static CHyprSignalListener onWorkspaceChangeHook   = nullptr;
+static CHyprSignalListener onWindowOpenHook        = nullptr;
+static CHyprSignalListener onConfigReloadedHook    = nullptr;
+static CHyprSignalListener onPreMonitorAddedHook   = nullptr;
+static CHyprSignalListener onMonitorAddedHook      = nullptr;
+static CHyprSignalListener onPreMonitorRemovedHook = nullptr;
+static CHyprSignalListener onMonitorRemovedHook    = nullptr;
 
 std::unique_ptr<VirtualDeskManager>     manager = std::make_unique<VirtualDeskManager>();
 std::vector<StickyApps::SStickyRule>    stickyRules;
@@ -290,7 +291,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
             "monitors": [
                 )#",
                            activeDesk->name, layout.size());
-        int index = 0;
+        WORKSPACEID index = 0;
         for (auto const& [mon, wid] : layout) {
             out += std::format(R"#({{
                 "monitorId": {},
@@ -318,11 +319,10 @@ SDispatchResult resetVDeskDispatch(std::string arg) {
     return SDispatchResult{};
 }
 
-void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
+void onWorkspaceChange(PHLWORKSPACE workspace) {
     if (monitorLayoutChanging)
         return;
-    auto        workspace   = std::any_cast<PHLWORKSPACE>(val);
-    WORKSPACEID workspaceID = std::any_cast<PHLWORKSPACE>(val)->m_id;
+    WORKSPACEID workspaceID = workspace->m_id;
 
     auto        monitor = workspace->m_monitor.lock();
     if (!monitor || !monitor->m_enabled)
@@ -335,15 +335,13 @@ void onWorkspaceChange(void*, SCallbackInfo&, std::any val) {
     }
 }
 
-void onWindowOpen(void*, SCallbackInfo&, std::any val) {
-    auto window = std::any_cast<PHLWINDOW>(val);
+void onWindowOpen(PHLWINDOW window) {
     int  vdesk  = StickyApps::matchRuleOnWindow(stickyRules, manager, window);
     if (vdesk > 0)
         manager->changeActiveDesk(vdesk, true);
 }
 
-void onPreMonitorRemoved(void*, SCallbackInfo&, std::any val) {
-    CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
+void onPreMonitorRemoved(PHLMONITOR monitor) {
     if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
@@ -352,8 +350,7 @@ void onPreMonitorRemoved(void*, SCallbackInfo&, std::any val) {
     monitorLayoutChanging = true;
 }
 
-void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
-    CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
+void onMonitorRemoved(PHLMONITOR monitor) {
     if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
@@ -368,8 +365,7 @@ void onMonitorRemoved(void*, SCallbackInfo&, std::any val) {
     }
 }
 
-void onPreMonitorAdded(void*, SCallbackInfo&, std::any val) {
-    CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
+void onPreMonitorAdded(PHLMONITOR monitor) {
     if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
@@ -378,8 +374,7 @@ void onPreMonitorAdded(void*, SCallbackInfo&, std::any val) {
     monitorLayoutChanging = true;
 }
 
-void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
-    CSharedPointer<CMonitor> monitor = std::any_cast<CSharedPointer<CMonitor>>(val);
+void onMonitorAdded(PHLMONITOR monitor) {
     if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
     }
@@ -392,7 +387,7 @@ void onMonitorAdded(void*, SCallbackInfo&, std::any val) {
     StickyApps::matchRules(stickyRules, manager);
 }
 
-void onConfigReloaded(void*, SCallbackInfo&, std::any val) {
+void onConfigReloaded() {
     static auto* const PNOTIFYINIT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->getDataStaticPtr();
     if (**PNOTIFYINIT && !notifiedInit) {
         HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CHyprColor{0.f, 1.f, 1.f, 1.f}, 5000);
@@ -479,13 +474,13 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     // Keywords
     HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule, Hyprlang::SHandlerOptions{});
 
-    onWorkspaceChangeHook   = HyprlandAPI::registerCallbackDynamic(PHANDLE, "workspace", onWorkspaceChange);
-    onWindowOpenHook        = HyprlandAPI::registerCallbackDynamic(PHANDLE, "openWindow", onWindowOpen);
-    onConfigReloadedHook    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "configReloaded", onConfigReloaded);
-    onPreMonitorAddedHook   = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preMonitorAdded", onPreMonitorAdded);
-    onPreMonitorRemovedHook = HyprlandAPI::registerCallbackDynamic(PHANDLE, "preMonitorRemoved", onPreMonitorRemoved);
-    onMonitorAddedHook      = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorAdded", onMonitorAdded);
-    onMonitorRemovedHook    = HyprlandAPI::registerCallbackDynamic(PHANDLE, "monitorRemoved", onMonitorRemoved);
+    onWorkspaceChangeHook   = Event::bus()->m_events.workspace.active.listen(onWorkspaceChange);
+    onWindowOpenHook        = Event::bus()->m_events.window.open.listen(onWindowOpen);
+    onConfigReloadedHook    = Event::bus()->m_events.config.reloaded.listen(onConfigReloaded);
+    onPreMonitorAddedHook   = Event::bus()->m_events.monitor.preAdded.listen(onPreMonitorAdded);
+    onPreMonitorRemovedHook = Event::bus()->m_events.monitor.preRemoved.listen(onPreMonitorRemoved);
+    onMonitorAddedHook      = Event::bus()->m_events.monitor.added.listen(onMonitorAdded);
+    onMonitorRemovedHook    = Event::bus()->m_events.monitor.removed.listen(onMonitorRemoved);
 
     registerHyprctlCommands();
 
