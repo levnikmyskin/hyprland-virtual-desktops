@@ -2,6 +2,7 @@
 #include "globals.hpp"
 #include "src/Compositor.hpp"
 #include <algorithm>
+#include <climits>
 #include <unordered_set>
 
 VirtualDesk::VirtualDesk(int id, std::string name) {
