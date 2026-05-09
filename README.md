@@ -2,6 +2,9 @@
 
 `virtual-desktops` is a plugin for the [Hyprland](https://github.com/hyprwm/Hyprland) compositor. `virtual-desktops` manages multiple screens workspaces as if they were a single virtual desktop.
 
+> [INFO]
+> This fork keeps the upstream virtual desktop workflow and adds plugin-rendered wallpapers for each virtual desktop. Wallpaper rules live directly in `hyprland.conf`, and transitions follow Hyprland's own workspace animation offsets.
+
 ## PLEASE READ IF YOU'RE ON HYPRLAND-GIT
 
 This plugin **only supports official releases of Hyprland** (e.g., v0.39.x, v0.40.x).
@@ -33,6 +36,7 @@ Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:m
     - [Choosing how to remember, or choosing to forget](#choosing-how-to-remember-or-choosing-to-forget)
       - [Example](#example-2)
   - [Install](#install)
+    - [Wallpaper Rendering Fork](#wallpaper-rendering-fork)
     - [Installing on NixOS with home—manager](#installing-on-nixos-with-homemanager)
   - [Waybar Integration](#waybar-integration)
     - [waybar-vd](#waybar-vd)
@@ -143,7 +147,7 @@ The plugin adds some IPC events to the [hyprland event socket](https://wiki.hypr
 
 ### Hyprland keywords
 
-Since version 2.2, this plugin exposes one keyword: `stickyrule`.
+The upstream plugin exposes the `stickyrule` keyword.
 A sticky rule is composed of a window identifier and a vdesk identifier.
 A window matched by a sticky rule will be moved to the matched vdesk:
 
@@ -180,6 +184,7 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 | rememberlayout  | chooses how layouts should be remembered (see [Layouts](#Layouts)), defaults to `size`                                                                                                                         | `none`, `size` or `monitors` | `remember = size`                                |
 | notifyinit      | chooses whether to display the startup notification, defaults to 1                                                                                                                                             | `0` or `1`                   | `notifyinit = 0`                                 |
 | verbose_logging | whether to log more stuff, defaults to 0                                                                                                                                                                       | `0` or `1`                   | `verbose_logging = 0`                            |
+| wallpaper_render | enables this fork's plugin-rendered vdesk wallpapers, defaults to 0                                                                                                                                           | `0` or `1`                   | `wallpaper_render = 1`                           |
 
 - The `names` config option maps virtual desktop IDs to a name (you can then use this with the hyprctl [dispatchers](#hyprctl-dispatchers));
 - `cycleworkspaces`: THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^.
@@ -190,6 +195,9 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 stickyrule = class:^(kittysticky)$,3
 stickyrule = title:thunderbird,mail
 
+# vdeskwallpaper = monitor, vdesk, path, mode
+vdeskwallpaper = *, *, ~/.config/hypr/wallpapers/wallpaper{vdesk0}.png, cover
+
 plugin {
     virtual-desktops {
         names = 1:coding, 2:internet, 3:mail and chats
@@ -197,6 +205,7 @@ plugin {
         rememberlayout = size
         notifyinit = 0
         verbose_logging = 0
+        wallpaper_render = 1
     }
 }
 ```
@@ -260,6 +269,86 @@ make all
 this will compile the `.so` plugin in the `./build` directory.
 
 Once compiled, you can tell Hyprland to load the plugin as described in the [Hyprland wiki](https://wiki.hyprland.org/Plugins/Using-Plugins/#installing--using-plugins).
+
+### Wallpaper Rendering Fork
+
+This fork can render one wallpaper per virtual desktop directly inside Hyprland's render pass. The renderer is useful when you want wallpapers to slide with the vdesk transition instead of fading through an external wallpaper daemon.
+
+It adds:
+
+- `plugin:virtual-desktops:wallpaper_render`, a plugin setting that turns the renderer on.
+- `vdeskwallpaper`, a top-level Hyprland keyword for choosing wallpapers per monitor and vdesk.
+- a render-stage hook that reads Hyprland's live workspace offsets, so wallpaper movement follows the same animation state as the windows.
+
+Enable it in the plugin block:
+
+```ini
+plugin {
+    virtual-desktops {
+        wallpaper_render = 1
+    }
+}
+```
+
+Then add one or more `vdeskwallpaper` rules at the top level of `hyprland.conf`, next to other Hyprland keywords such as `windowrule` or `stickyrule`.
+
+Syntax:
+
+```ini
+vdeskwallpaper = monitor, vdesk, path, mode
+```
+
+Fields:
+
+| Field | Description | Examples |
+| ----- | ----------- | -------- |
+| `monitor` | Hyprland monitor name, or `*` / `all` for every monitor | `DP-1`, `HDMI-A-1`, `*` |
+| `vdesk` | Positive vdesk number, or `*` / `all` for every vdesk | `1`, `3`, `*` |
+| `path` | PNG image path. `~` and `$HOME` are expanded | `~/Pictures/wallpapers/desk1.png` |
+| `mode` | Optional render mode. Defaults to `cover` | `cover`, `contain`, `fit`, `stretch`, `center` |
+
+Path tokens:
+
+| Token | Expands to |
+| ----- | ---------- |
+| `{vdesk}` | the 1-based vdesk number, for example `1` |
+| `{vdesk0}` | the zero-based vdesk number, for example `0` |
+| `{monitor}` | the monitor name, for example `DP-1` |
+
+Render modes:
+
+| Mode | Behavior |
+| ---- | -------- |
+| `cover` | fill the monitor while preserving aspect ratio, cropping if needed |
+| `contain` / `fit` | fit the whole image inside the monitor while preserving aspect ratio |
+| `stretch` | stretch the image to the monitor size |
+| `center` | draw the image at its native size, centered on the monitor |
+
+Example:
+
+```ini
+# vdeskwallpaper = monitor, vdesk, path, mode
+# monitor/vdesk can be "*" for a fallback. Modes: cover, contain/fit, stretch, center.
+vdeskwallpaper = *, *, ~/.config/hypr/wallpapers/wallpaper{vdesk0}.png, cover
+vdeskwallpaper = DP-1, 3, ~/Pictures/wallpapers/coding.png, contain
+vdeskwallpaper = HDMI-A-1, 2, ~/Pictures/wallpapers/video.png, stretch
+
+plugin {
+    virtual-desktops {
+        wallpaper_render = 1
+    }
+}
+```
+
+Rule precedence:
+
+- exact monitor plus exact vdesk is the most specific match.
+- exact monitor plus `*` / `all` vdesk is used before a global per-vdesk rule.
+- `*` / `all` monitor plus exact vdesk is used before the global fallback.
+- `*` / `all` monitor plus `*` / `all` vdesk is the global fallback.
+- if two rules have the same specificity, the later rule wins.
+
+Hyprland plugins use Hyprland's private ABI, so rebuild this fork whenever Hyprland itself is updated. If the plugin was replaced while Hyprland was running, restart Hyprland or unload and load the rebuilt `.so` again.
 
 ### Installing on NixOS with home—manager
 

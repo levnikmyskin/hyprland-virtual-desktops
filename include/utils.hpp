@@ -14,8 +14,10 @@ const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspa
 const std::string REMEMBER_LAYOUT_CONF   = "plugin:virtual-desktops:rememberlayout";
 const std::string NOTIFY_INIT            = "plugin:virtual-desktops:notifyinit";
 const std::string VERBOSE_LOGS           = "plugin:virtual-desktops:verbose_logging";
+const std::string WALLPAPER_RENDER_CONF  = "plugin:virtual-desktops:wallpaper_render";
 
-const std::string STICKY_RULES_KEYW = "stickyrule";
+const std::string STICKY_RULES_KEYW    = "stickyrule";
+const std::string WALLPAPER_RULE_KEYW  = "vdeskwallpaper";
 
 const std::string VDESK_DISPATCH_STR = "vdesk";
 
