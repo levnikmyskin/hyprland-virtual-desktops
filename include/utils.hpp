@@ -5,6 +5,7 @@
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
+#include <hyprland/src/helpers/Monitor.hpp>
 #include <hyprutils/cli/Logger.hpp>
 
 using namespace Hyprutils::Memory;
