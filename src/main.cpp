@@ -43,6 +43,9 @@ bool                                 notifiedInit          = false;
 bool                                 monitorLayoutChanging = false;
 
 namespace {
+    using Render::GL::g_pHyprOpenGL;
+    using Render::ITexture;
+
     enum class EWallpaperFit {
         COVER,
         CONTAIN,
@@ -57,10 +60,10 @@ namespace {
         EWallpaperFit fit = EWallpaperFit::COVER;
     };
 
-    std::vector<SWallpaperRule>              g_wallpaperRules;
-    std::unordered_map<std::string, SP<CTexture>> g_wallpaperTextures;
-    std::unordered_set<std::string>          g_wallpaperMissingPathsLogged;
-    bool                                     g_wallpaperRulesParsedSinceReload = false;
+    std::vector<SWallpaperRule>                    g_wallpaperRules;
+    std::unordered_map<std::string, SP<ITexture>>  g_wallpaperTextures;
+    std::unordered_set<std::string>                g_wallpaperMissingPathsLogged;
+    bool                                           g_wallpaperRulesParsedSinceReload = false;
 
     struct SWallpaperTransition {
         bool                                     active    = false;
@@ -85,7 +88,7 @@ namespace {
     class CWallpaperPassElement : public IPassElement {
       public:
         struct SData {
-            SP<CTexture> tex;
+            SP<ITexture> tex;
             CBox         box;
             CBox         clipBox;
             CRegion      damage;
@@ -93,13 +96,14 @@ namespace {
 
         explicit CWallpaperPassElement(SData&& data) : m_data(std::move(data)) {}
 
-        void draw(const CRegion& damage) override {
-            const auto oldClip = g_pHyprOpenGL->m_renderData.clipBox;
-            g_pHyprOpenGL->m_renderData.clipBox = m_data.clipBox;
+        std::vector<UP<IPassElement>> draw() override {
+            const auto oldClip = g_pHyprRenderer->m_renderData.clipBox;
+            g_pHyprRenderer->m_renderData.clipBox = m_data.clipBox;
 
-            g_pHyprOpenGL->renderTexture(m_data.tex, m_data.box, {.damage = m_data.damage.empty() ? &damage : &m_data.damage, .a = 1.F, .allowDim = false});
+            g_pHyprOpenGL->renderTexture(m_data.tex, m_data.box, {.damage = &m_data.damage, .a = 1.F, .allowDim = false});
 
-            g_pHyprOpenGL->m_renderData.clipBox = oldClip;
+            g_pHyprRenderer->m_renderData.clipBox = oldClip;
+            return {};
         }
 
         bool needsLiveBlur() override {
@@ -114,6 +118,10 @@ namespace {
             return "CWallpaperPassElement";
         }
 
+        ePassElementType type() override {
+            return EK_CUSTOM;
+        }
+
         bool undiscardable() override {
             return true;
         }
@@ -123,7 +131,7 @@ namespace {
         }
 
         std::optional<CBox> boundingBox() override {
-            return m_data.box.copy().scale(1.F / g_pHyprOpenGL->m_renderData.pMonitor->m_scale).round();
+            return m_data.box.copy().scale(1.F / g_pHyprRenderer->m_renderData.pMonitor->m_scale).round();
         }
 
         CRegion opaqueRegion() override {
@@ -294,7 +302,7 @@ namespace {
         g_wallpaperRulesParsedSinceReload = false;
     }
 
-    SP<CTexture> wallpaperTextureForPath(const std::string& path) {
+    SP<ITexture> wallpaperTextureForPath(const std::string& path) {
         if (auto it = g_wallpaperTextures.find(path); it != g_wallpaperTextures.end())
             return it->second;
 
@@ -325,8 +333,8 @@ namespace {
         }
 
         // Decode once per desk and hand the pixels to Hyprland as an OpenGL texture.
-        auto tex = makeShared<CTexture>(drmFormat, cairo_image_surface_get_data(surface), cairo_image_surface_get_stride(surface),
-                                        Vector2D{(double)cairo_image_surface_get_width(surface), (double)cairo_image_surface_get_height(surface)}, true);
+        auto tex = g_pHyprRenderer->createTexture(drmFormat, cairo_image_surface_get_data(surface), cairo_image_surface_get_stride(surface),
+                                                  Vector2D{(double)cairo_image_surface_get_width(surface), (double)cairo_image_surface_get_height(surface)}, true);
         cairo_surface_destroy(surface);
 
         if (tex && tex->m_texID != 0) {
@@ -437,7 +445,7 @@ namespace {
             g_transition.active = false;
     }
 
-    CBox wallpaperBoxForMonitor(const SP<CTexture>& tex, const PHLMONITOR& monitor, const EWallpaperFit fit, const Vector2D& offset = {}) {
+    CBox wallpaperBoxForMonitor(const SP<ITexture>& tex, const PHLMONITOR& monitor, const EWallpaperFit fit, const Vector2D& offset = {}) {
         const auto monSize  = monitor->m_transformedSize;
         const auto pxOffset = offset * monitor->m_scale;
         CBox       box      = {pxOffset.x, pxOffset.y, monSize.x, monSize.y};
@@ -501,13 +509,13 @@ namespace {
         if (!**PWALLPAPERRENDER)
             return;
 
-        const PHLMONITOR monitor = g_pHyprOpenGL->m_renderData.pMonitor.lock();
+        const PHLMONITOR monitor = g_pHyprRenderer->m_renderData.pMonitor.lock();
         if (!monitor || !monitor->m_activeWorkspace)
             return;
 
         const auto fullDamage = fullMonitorRegion(monitor);
-        g_pHyprOpenGL->m_renderData.damage.add(fullDamage);
-        g_pHyprOpenGL->m_renderData.finalDamage.add(fullDamage);
+        g_pHyprRenderer->m_renderData.damage.add(fullDamage);
+        g_pHyprRenderer->m_renderData.finalDamage.add(fullDamage);
 
         if (g_transition.active) {
             static auto PWORKSPACEGAP = CConfigValue<Hyprlang::INT>("general:gaps_workspaces");
