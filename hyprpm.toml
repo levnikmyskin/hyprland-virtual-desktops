@@ -73,6 +73,8 @@ commit_pins = [
     ["0002f148c9a4fe421a9d33c0faa5528cdc411e62", "12c2f38d1f624b590255195cf9e4137e79af5a96"],
     # Hyprland v0.55.1
     ["a47147bc095e5b3be3eb8bd04f0ac242b968cd4d", "03011e6a677516cafbcdee37f3cb4707fa01517f"],
+    # Hyprland v0.55.2
+    ["39d7e209c79d451efab1b21151d5938289da838d", "2b60a7b59bc2211e367b86d22a7e87e39a3afcba"],
 ]
 
 
@@ -83,4 +85,3 @@ output = "virtual-desktops.so"
 build = [
     "make all"
 ]
-
