@@ -186,6 +186,22 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 
 #### Example config
 
+* Lua Config
+
+```lua
+hl.config({
+    plugin = {
+        virtual_desktops = {
+            names = "1:coding, 2:internet, 3:mail and chats",
+            cycleworkspaces = 0,
+            notifyinit = 1,
+            verbose_logging = 1,
+        },
+    }
+})
+```
+
+* Or hyprland/legacy Config
 ```ini
 stickyrule = class:^(kittysticky)$,3
 stickyrule = title:thunderbird,mail
@@ -200,6 +216,8 @@ plugin {
     }
 }
 ```
+
+
 
 ## Layouts
 

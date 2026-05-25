@@ -179,14 +179,12 @@ void VirtualDeskManager::loadLayoutConf() {
     // Maybe in a future release :)
     if (confLoaded)
         return;
-    static auto* const PREMEMBER_LAYOUT = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->getDataStaticPtr();
-    conf                                = layoutConfFromString(*PREMEMBER_LAYOUT);
-    confLoaded                          = true;
+    conf       = layoutConfFromString(config.rememberLayout->value());
+    confLoaded = true;
 }
 
 void VirtualDeskManager::cycleWorkspaces() {
-    static auto* const PCYCLEWORKSPACES = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLEWORKSPACES_CONF)->getDataStaticPtr();
-    if (!**PCYCLEWORKSPACES)
+    if (!config.cycleWorkspaces->value())
         return;
 
     auto                     n_monitors     = g_pCompositor->m_monitors.size();

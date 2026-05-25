@@ -2,7 +2,7 @@
 #include "globals.hpp"
 
 void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
-    // #ifdef DEBUG
+    // #ifdef HYPRLAND_VIRTUAL_DESKTOPS_DEBUG
     //     std::cout << "[virtual-desktops] " + s << std::endl;
     // #endif
     Log::logger->log(level, "[virtual-desktops] {}", s);
@@ -49,14 +49,6 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
     else if (conf == REMEMBER_SIZE)
         return RememberLayoutConf::size;
     return RememberLayoutConf::monitors;
-}
-
-bool isVerbose() {
-    // this might happen if called before plugin is initalized
-    if (!PHANDLE)
-        return true;
-    static auto* const PVERBOSELOGS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->getDataStaticPtr();
-    return **PVERBOSELOGS;
 }
 
 std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude) {

@@ -10,6 +10,7 @@
 #include "utils.hpp"
 #include "sticky_apps.hpp"
 
+#include <plugins/PluginAPI.hpp>
 #include <src/desktop/DesktopTypes.hpp>
 #include <vector>
 
@@ -28,7 +29,8 @@ std::vector<StickyApps::SStickyRule> stickyRules;
 bool                                 notifiedInit          = false;
 bool                                 monitorLayoutChanging = false;
 
-void                                 parseNamesConf(std::string& conf) {
+void                                 parseNamesConf(const std::string& _conf) {
+    std::string conf = _conf;
     size_t      pos;
     size_t      delim;
     std::string rule;
@@ -143,10 +145,7 @@ SDispatchResult moveToNextDeskSilentDispatch(std::string arg) {
 }
 
 std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
-    static auto* const PVDESKNAMESCONF = (Hyprlang::STRING const*)(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF))->getDataStaticPtr();
-
-    auto               vdeskNamesConf = std::string{*PVDESKNAMESCONF};
-    parseNamesConf(vdeskNamesConf);
+    parseNamesConf(config.names->value());
 
     arg.erase(0, PRINTDESK_DISPATCH_STR.length());
     printLog(std::format("Got {}", arg));
@@ -388,14 +387,11 @@ void onMonitorAdded(PHLMONITOR monitor) {
 }
 
 void onConfigReloaded() {
-    static auto* const PNOTIFYINIT = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, NOTIFY_INIT)->getDataStaticPtr();
-    if (**PNOTIFYINIT && !notifiedInit) {
+    if (config.notifyInit->value() && !notifiedInit) {
         HyprlandAPI::addNotification(PHANDLE, "Virtual desk Initialized successfully!", CHyprColor{0.f, 1.f, 1.f, 1.f}, 5000);
         notifiedInit = true;
     }
-    static auto* const PVDESKNAMESCONF = (Hyprlang::STRING const*)(HyprlandAPI::getConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF))->getDataStaticPtr();
-    auto               vdeskNamesConf  = std::string{*PVDESKNAMESCONF};
-    parseNamesConf(vdeskNamesConf);
+    parseNamesConf(config.names->value());
     manager->loadLayoutConf();
 }
 
@@ -465,11 +461,11 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addDispatcherV2(PHANDLE, RESET_VDESK_DISPATCH_STR, resetVDeskDispatch);
 
     // Configs
-    HyprlandAPI::addConfigValue(PHANDLE, VIRTUALDESK_NAMES_CONF, Hyprlang::STRING{"unset"});
-    HyprlandAPI::addConfigValue(PHANDLE, CYCLEWORKSPACES_CONF, Hyprlang::INT{1});
-    HyprlandAPI::addConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF, Hyprlang::STRING{REMEMBER_SIZE.c_str()});
-    HyprlandAPI::addConfigValue(PHANDLE, NOTIFY_INIT, Hyprlang::INT{1});
-    HyprlandAPI::addConfigValue(PHANDLE, VERBOSE_LOGS, Hyprlang::INT{0});
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.names);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.cycleWorkspaces);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.rememberLayout);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.notifyInit);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.verboseLogging);
 
     // Keywords
     HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule, Hyprlang::SHandlerOptions{});

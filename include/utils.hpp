@@ -1,4 +1,5 @@
 #pragma once
+#include "globals.hpp"
 #ifndef UTILS_H
 #define UTILS_H
 
@@ -9,12 +10,6 @@
 #include <hyprutils/cli/Logger.hpp>
 
 using namespace Hyprutils::Memory;
-
-const std::string VIRTUALDESK_NAMES_CONF = "plugin:virtual-desktops:names";
-const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspaces";
-const std::string REMEMBER_LAYOUT_CONF   = "plugin:virtual-desktops:rememberlayout";
-const std::string NOTIFY_INIT            = "plugin:virtual-desktops:notifyinit";
-const std::string VERBOSE_LOGS           = "plugin:virtual-desktops:verbose_logging";
 
 const std::string STICKY_RULES_KEYW = "stickyrule";
 
@@ -65,5 +60,10 @@ std::string                           ltrim(const std::string& s);
 std::string                           rtrim(const std::string& s);
 std::string                           trim(const std::string& s);
 
-bool                                  isVerbose();
+inline bool                           isVerbose() {
+    if (!PHANDLE) {
+        return true;
+    }
+    return config.verboseLogging->value();
+}
 #endif
