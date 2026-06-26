@@ -5,6 +5,8 @@
 #include <ranges>
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
+#include <src/state/MonitorState.hpp>
+#include <src/state/WorkspaceState.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -64,7 +66,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [lmon, workspaceId] : layout) {
-        CSharedPointer<CMonitor> mon = lmon;
+        CSharedPointer<Monitor::CMonitor> mon = lmon;
         if (!mon || !mon->m_enabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
             mon = activeVdesk()->deleteInvalidMonitor(mon);
@@ -74,10 +76,11 @@ void VirtualDeskManager::applyCurrentVDesk() {
                 return;
             }
         }
-        PHLWORKSPACE workspace = g_pCompositor->getWorkspaceByID(workspaceId);
+
+        auto workspace = State::workspaceState()->query().id(workspaceId).run();
         if (!workspace) {
             printLog("Creating workspace " + std::to_string(workspaceId));
-            workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->m_id);
+            workspace = State::workspaceState()->create(workspaceId, mon->m_id);
         }
 
         if (workspace->m_monitor != mon)
@@ -189,19 +192,19 @@ void VirtualDeskManager::cycleWorkspaces() {
     if (!**PCYCLEWORKSPACES)
         return;
 
-    auto                     n_monitors     = g_pCompositor->m_monitors.size();
-    CSharedPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
+    auto                              n_monitors     = State::monitorState()->monitors().size();
+    CSharedPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
     // in order to consistently move left/right or up/down.
     if (n_monitors == 2) {
-        int  other    = g_pCompositor->m_monitors[0]->m_id == currentMonitor->m_id;
-        auto otherMon = g_pCompositor->m_monitors[other];
+        int  other    = State::monitorState()->monitors()[0]->m_id == currentMonitor->m_id;
+        auto otherMon = State::monitorState()->monitors()[other];
         g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
 
-        auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspaceID());
-        auto otherWorkspace   = g_pCompositor->getWorkspaceByID(otherMon->activeWorkspaceID());
+        auto currentWorkspace = State::workspaceState()->query().id(currentMonitor->activeWorkspaceID()).run();
+        auto otherWorkspace   = State::workspaceState()->query().id(otherMon->activeWorkspaceID()).run();
         activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_id, currentMonitor);
         activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_id, otherMon);
     } else if (n_monitors > 2) {
@@ -211,7 +214,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<CMonitor>& monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<Monitor::CMonitor>& monitor) {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf, monitor);
@@ -292,12 +295,12 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
+CSharedPointer<Monitor::CMonitor> VirtualDeskManager::getFocusedMonitor() {
+    CWeakPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output)) {
-        for (auto mon : g_pCompositor->m_monitors) {
+        for (auto mon : State::monitorState()->monitors()) {
             if (mon->m_enabled && mon->m_output)
                 return mon;
         }

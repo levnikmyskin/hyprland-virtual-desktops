@@ -53,6 +53,7 @@ runs:
           libxkbfile \
           libxcursor \
           lld \
+          lua \
           meson \
           muparser \
           ninja \
