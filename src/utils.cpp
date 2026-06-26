@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include "globals.hpp"
+#include <src/state/MonitorState.hpp>
 
 void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
     // #ifdef DEBUG
@@ -59,16 +60,14 @@ bool isVerbose() {
     return **PVERBOSELOGS;
 }
 
-std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude) {
-    std::vector<CSharedPointer<CMonitor>> monitors;
-    if (g_pCompositor->m_monitors.empty())
+std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude) {
+    std::vector<CSharedPointer<Monitor::CMonitor>> monitors;
+
+    if (State::monitorState()->monitors().empty())
         return monitors;
 
-    std::copy_if(g_pCompositor->m_monitors.begin(), g_pCompositor->m_monitors.end(), std::back_inserter(monitors), [&](const auto mon) {
+    std::copy_if(State::monitorState()->monitors().begin(), State::monitorState()->monitors().end(), std::back_inserter(monitors), [&](const auto mon) {
         if (!mon)
-            return false;
-
-        if (g_pCompositor->m_unsafeOutput && g_pCompositor->m_unsafeOutput->m_name == mon->m_name)
             return false;
 
         if (!mon->m_output)
