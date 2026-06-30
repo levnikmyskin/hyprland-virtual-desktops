@@ -290,7 +290,7 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
             "monitors": [
                 )#",
                            activeDesk->name, layout.size());
-        int index = 0;
+        size_t index = 0;
         for (auto const& [mon, wid] : layout) {
             out += std::format(R"#({{
                 "monitorId": {},

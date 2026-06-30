@@ -178,7 +178,7 @@ MonitorLayout VirtualDesk::generateCurrentMonitorLayout() {
         printLog("vdesk " + name + " computing new layout for " + std::to_string(monitors.size()) + " monitors");
     auto vdeskFirstWorkspace = (this->id - 1) * monitors.size() + 1;
     int  j                   = 0;
-    for (int i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + monitors.size(); i++) {
+    for (size_t i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + monitors.size(); i++) {
         layout[monitors[j]] = i;
         j++;
     }
