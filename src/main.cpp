@@ -9,6 +9,8 @@
 #include "VirtualDeskManager.hpp"
 #include "utils.hpp"
 #include "sticky_apps.hpp"
+#include "lua_bindings.hpp"
+#include "dispatchers.hpp"
 
 #include <plugins/PluginAPI.hpp>
 #include <src/desktop/DesktopTypes.hpp>
@@ -479,6 +481,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     onMonitorRemovedHook    = Event::bus()->m_events.monitor.removed.listen(onMonitorRemoved);
 
     registerHyprctlCommands();
+    registerLuaBindings(PHANDLE);
 
     // Initialize first vdesk
     HyprlandAPI::reloadConfig();
