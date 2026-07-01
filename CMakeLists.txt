@@ -37,6 +37,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     hyprland
     libdrm
     pixman-1
+    lua
 )
 target_link_libraries(hyprland-virtual-desktops PRIVATE rt PkgConfig::deps)
 
