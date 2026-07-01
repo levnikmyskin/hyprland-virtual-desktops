@@ -7,6 +7,7 @@
   wayland-protocols,
   cairo,
   pango,
+  lua,
 }:
 gcc14Stdenv.mkDerivation {
   pname = "virtual-desktops";
@@ -23,6 +24,7 @@ gcc14Stdenv.mkDerivation {
     wayland-protocols
     cairo
     pango
+    lua
   ]
   ++ hyprland.buildInputs;
 

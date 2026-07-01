@@ -267,6 +267,13 @@ If we now disconnect monitor C and reconnect monitor B: our connected monitors a
 
 ## Install
 
+### Dependencies
+
+This plugin requires **Lua** (development headers and library) to be installed:
+- **Arch Linux**: `lua`
+- **Fedora**: `lua-devel`
+- **Ubuntu/Debian**: `liblua5.4-dev` (or equivalent `liblua-dev`)
+
 In order to use plugins, you should compile Hyprland yourself. See [Hyprland Wiki#Using Plugins](https://wiki.hyprland.org/Plugins/Using-Plugins/).
 
 You can use:
