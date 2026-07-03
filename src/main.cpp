@@ -203,7 +203,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
                 auto workspace = State::workspaceState()->query().id(workspaceId).run();
                 if (workspace) {
-                    windows += workspace->getWindows();
+                    windows += workspace->getWindowCount();
                 }
                 if (!first)
                     workspaces += ", ";
@@ -234,7 +234,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
                 auto workspace = State::workspaceState()->query().id(workspaceId).run();
                 if (workspace) {
-                    windows += workspace->getWindows();
+                    windows += workspace->getWindowCount();
                 }
                 if (!first)
                     workspaces += ", ";

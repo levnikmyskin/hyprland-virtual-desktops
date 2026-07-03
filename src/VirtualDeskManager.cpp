@@ -5,8 +5,10 @@
 #include <ranges>
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
+#include <src/desktop/state/GlobalWindowController.hpp>
 #include <src/state/MonitorState.hpp>
 #include <src/state/WorkspaceState.hpp>
+#include <src/state/WorkspacePlacementController.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -84,7 +86,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
         }
 
         if (workspace->m_monitor != mon)
-            g_pCompositor->moveWorkspaceToMonitor(workspace, mon);
+            State::workspacePlacementController()->moveWorkspaceToMonitor(workspace, mon);
 
         // Hack: we change the workspace on the current monitor as our last operation,
         // so that we also automatically focus it
@@ -128,7 +130,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     PHLMONITORREF monitor = Desktop::focusState()->monitor();
     PHLWINDOW     window  = nullptr;
     if (arg != "") {
-        window = g_pCompositor->getWindowByRegex(arg);
+        window = Desktop::viewState()->query().selector(arg).runWindow();
         if (!window) {
             printLog(std::format("Window {} does not exist???", arg), Log::ERR);
         } else {
@@ -146,9 +148,9 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         }
     }
 
-    PHLWORKSPACE ws = g_pCompositor->getWorkspaceByID(wid);
+    PHLWORKSPACE ws = State::workspaceState()->query().id(wid).run();
     if (!ws) {
-        ws = g_pCompositor->createNewWorkspace(wid, monitor->m_id);
+        ws = State::workspaceState()->create(wid, monitor->m_id);
     }
 
     PHLWINDOW win = window;
@@ -157,7 +159,7 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     }
 
     if (win) {
-        g_pCompositor->moveWindowToWorkspaceSafe(win, ws);
+        Desktop::globalWindowController()->moveWindowToWorkspace(win, ws);
     }
 
     return vdeskId;
@@ -206,7 +208,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     if (n_monitors == 2) {
         int  other    = State::monitorState()->monitors()[0]->m_id == currentMonitor->m_id;
         auto otherMon = State::monitorState()->monitors()[other];
-        g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
+        State::workspacePlacementController()->swapActiveWorkspaces(currentMonitor, otherMon);
 
         auto currentWorkspace = State::workspaceState()->query().id(currentMonitor->activeWorkspaceID()).run();
         auto otherWorkspace   = State::workspaceState()->query().id(otherMon->activeWorkspaceID()).run();
