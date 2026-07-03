@@ -124,7 +124,7 @@ CSharedPointer<CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<CS
     for (const auto& mon : currentlyEnabledMonitors()) {
         auto workspace = g_pCompositor->getWorkspaceByID(mon->activeWorkspaceID());
         if (workspace) {
-            auto n_on_mon = workspace->getWindows();
+            auto n_on_mon = workspace->getWindowCount();
             if (n_on_mon < n) {
                 n          = n_on_mon;
                 newMonitor = mon;
