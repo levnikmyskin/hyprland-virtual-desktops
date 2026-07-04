@@ -124,7 +124,7 @@ CSharedPointer<Monitor::CMonitor> VirtualDesk::firstAvailableMonitor(const std::
     for (const auto& mon : currentlyEnabledMonitors()) {
         auto workspace = State::workspaceState()->query().id(mon->activeWorkspaceID()).run();
         if (workspace) {
-            auto n_on_mon = workspace->getWindows();
+            auto n_on_mon = workspace->getWindowCount();
             if (n_on_mon < n) {
                 n          = n_on_mon;
                 newMonitor = mon;
@@ -178,7 +178,7 @@ MonitorLayout VirtualDesk::generateCurrentMonitorLayout() {
         printLog("vdesk " + name + " computing new layout for " + std::to_string(monitors.size()) + " monitors");
     auto vdeskFirstWorkspace = (this->id - 1) * monitors.size() + 1;
     int  j                   = 0;
-    for (int i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + monitors.size(); i++) {
+    for (size_t i = vdeskFirstWorkspace; i < vdeskFirstWorkspace + monitors.size(); i++) {
         layout[monitors[j]] = i;
         j++;
     }

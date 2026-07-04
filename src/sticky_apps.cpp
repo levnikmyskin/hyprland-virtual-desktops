@@ -1,5 +1,6 @@
 #include "sticky_apps.hpp"
 #include "utils.hpp"
+#include <src/desktop/state/WindowState.hpp>
 #include <regex>
 
 bool StickyApps::parseRule(const std::string& rule, SStickyRule& sticky, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
@@ -30,7 +31,7 @@ bool StickyApps::parseWindowRule(const std::string& rule, SStickyRule& sticky) {
 
 void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_ptr<VirtualDeskManager>& vdeskManager) {
     for (auto& r : rules) {
-        for (const auto& w : g_pCompositor->m_windows) {
+        for (const auto& w : Desktop::windowState()->windows()) {
             auto windowProp = extractProperty(r, w);
             if (windowProp.empty())
                 continue;
