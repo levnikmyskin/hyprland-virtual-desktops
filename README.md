@@ -257,8 +257,7 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 ```lua
 hl.config({
     plugin = {
-        -- Note: Bracket notation is required due to the hyphen in the plugin name
-        ["virtual-desktops"] = {
+        ["virtual_desktops"] = {
             names = "1:coding, 2:internet, 3:mail and chats",
             cycleworkspaces = 0,
             rememberlayout = "size",
