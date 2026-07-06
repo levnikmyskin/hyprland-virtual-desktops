@@ -468,6 +468,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     HyprlandAPI::addConfigValueV2(PHANDLE, config.rememberLayout);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.notifyInit);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.verboseLogging);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.monitorOrder);
 
     // Keywords
     HyprlandAPI::addConfigKeyword(PHANDLE, STICKY_RULES_KEYW, parseStickyRule, Hyprlang::SHandlerOptions{});
