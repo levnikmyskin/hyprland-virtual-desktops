@@ -12,6 +12,7 @@ struct SConfig {
     SP<Config::Values::CStringValue> rememberLayout;
     SP<Config::Values::CIntValue>    notifyInit;
     SP<Config::Values::CIntValue>    verboseLogging;
+    SP<Config::Values::CStringValue> monitorOrder;
 };
 
 inline SConfig config = {
@@ -20,4 +21,5 @@ inline SConfig config = {
     .rememberLayout  = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:rememberlayout", "chooses how layouts should be remembered", "unset"),
     .notifyInit      = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:notifyinit", "chooses whether to display the startup notification", 1),
     .verboseLogging  = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:verbose_logging", "whether to log more stuff", 0),
+    .monitorOrder    = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:monitor_order", "comma-separated list of monitors in order", "unset"),
 };

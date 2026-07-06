@@ -244,9 +244,11 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 | rememberlayout  | chooses how layouts should be remembered (see [Layouts](#Layouts)), defaults to `size`                                                                                                                         | `none`, `size` or `monitors` | `remember = size`                                |
 | notifyinit      | chooses whether to display the startup notification, defaults to 1                                                                                                                                             | `0` or `1`                   | `notifyinit = 0`                                 |
 | verbose_logging | whether to log more stuff, defaults to 0                                                                                                                                                                       | `0` or `1`                   | `verbose_logging = 0`                            |
+| monitor_order   | comma-separated list of monitors in desired order (left to right)                                                                                                                                              | `string`, see below          | `monitor_order = DP-2, DP-1, DP-3`               |
 
 - The `names` config option maps virtual desktop IDs to a name (you can then use this with the hyprctl [dispatchers](#hyprctl-dispatchers));
 - `cycleworkspaces`: THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^.
+- `monitor_order`: specifies the order of monitors (e.g. left to right) to layout virtual desktops workspaces on them consistently. If unset, defaults to Hyprland's internal discovery order.
 
 #### Example config
 
@@ -255,13 +257,13 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 ```lua
 hl.config({
     plugin = {
-        -- Note: Bracket notation is required due to the hyphen in the plugin name
-        ["virtual-desktops"] = {
+        ["virtual_desktops"] = {
             names = "1:coding, 2:internet, 3:mail and chats",
             cycleworkspaces = 0,
             rememberlayout = "size",
             notifyinit = 1,
             verbose_logging = 1,
+            monitor_order = "DP-2, DP-1, DP-3",
         },
     }
 })
@@ -279,6 +281,7 @@ plugin {
         rememberlayout = size
         notifyinit = 0
         verbose_logging = 0
+        monitor_order = DP-2, DP-1, DP-3
     }
 }
 ```

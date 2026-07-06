@@ -1,6 +1,8 @@
 #include "utils.hpp"
 #include "globals.hpp"
 #include <src/state/MonitorState.hpp>
+#include <algorithm>
+#include <ranges>
 
 void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
     // #ifdef HYPRLAND_VIRTUAL_DESKTOPS_DEBUG
@@ -73,6 +75,27 @@ std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CS
 
         return mon->m_enabled;
     });
+
+    std::string order_str = config.monitorOrder->value();
+    if (order_str != "unset" && !order_str.empty()) {
+        std::vector<std::string> order;
+        for (const auto subrange : std::views::split(order_str, ',')) {
+            order.push_back(trim(std::string{subrange.begin(), subrange.end()}));
+        }
+
+        std::sort(monitors.begin(), monitors.end(), [&order](const auto& a, const auto& b) {
+            auto it_a = std::find(order.begin(), order.end(), a->m_name);
+            auto it_b = std::find(order.begin(), order.end(), b->m_name);
+
+            if (it_a != order.end() && it_b != order.end()) {
+                return it_a < it_b;
+            }
+            if (it_a != order.end()) return true;
+            if (it_b != order.end()) return false;
+            return a->m_name < b->m_name;
+        });
+    }
+
     return monitors;
 }
 
