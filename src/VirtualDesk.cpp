@@ -29,6 +29,10 @@ MonitorLayout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, c
             auto currentSet = setFromMonitors(monitors);
             int  idx        = 0;
             for (auto& layout : layouts) {
+                if (layout.empty()) {
+                    idx++;
+                    continue;
+                }
                 std::unordered_set<std::string> set;
                 for (const auto& [k, v] : layout) {
                     set.insert(monitorDesc(k));
@@ -49,6 +53,10 @@ MonitorLayout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, c
         case RememberLayoutConf::size: {
             int idx = 0;
             for (auto& layout : layouts) {
+                if (layout.empty()) {
+                    idx++;
+                    continue;
+                }
                 if (layout.size() == monitors.size()) {
                     if (isVerbose())
                         printLog("Found layout with size " + std::to_string(layout.size()));
