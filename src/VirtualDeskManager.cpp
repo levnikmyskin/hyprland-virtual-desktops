@@ -138,11 +138,17 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         }
     }
 
+    const auto& layout = vdesk->activeLayout(conf);
+    if (layout.empty()) {
+        printLog(std::format("vdesk {} has an empty layout; cannot move window", vdeskId), Log::WARN);
+        return vdeskId;
+    }
+
     // take the first workspace wherever in the layout
     // and later go for the workspace which is on the same monitor
     // of the window
-    auto wid = vdesk->activeLayout(conf).begin()->second;
-    for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
+    auto wid = layout.begin()->second;
+    for (auto const& [mon, workspace] : layout) {
         if (mon == monitor) {
             wid = workspace;
         }
