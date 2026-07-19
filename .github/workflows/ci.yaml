@@ -27,7 +27,7 @@ jobs:
         if: github.ref == 'refs/heads/main'|| github.base_ref == 'main'
         with:
           INSTALL_XORG_PKGS: true
-          branch: "v0.55.2"
+          branch: "v0.55.4"
           hyprwayland: "v0.4.6"
 
       - name: Setup base on dev
