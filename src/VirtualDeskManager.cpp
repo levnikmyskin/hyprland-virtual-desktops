@@ -81,7 +81,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
         }
 
         if (workspace->m_monitor != mon)
-            g_pCompositor->moveWorkspaceToMonitor(workspace, currentMonitor);
+            g_pCompositor->moveWorkspaceToMonitor(workspace, mon);
 
         // Hack: we change the workspace on the current monitor as our last operation,
         // so that we also automatically focus it
@@ -123,8 +123,9 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // if no arg is provided, it's the currently focussed monitor and otherwise
     // it's the monitor of the window matched by the arg regex
     PHLMONITORREF monitor = Desktop::focusState()->monitor();
+    PHLWINDOW     window  = nullptr;
     if (arg != "") {
-        PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
+        window = g_pCompositor->getWindowByRegex(arg);
         if (!window) {
             printLog(std::format("Window {} does not exist???", arg), Log::ERR);
         } else {
@@ -142,14 +143,20 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         }
     }
 
-    std::string moveCmd;
-    if (arg == "") {
-        moveCmd = std::to_string(wid);
-    } else {
-        moveCmd = std::to_string(wid) + "," + arg;
+    PHLWORKSPACE ws = g_pCompositor->getWorkspaceByID(wid);
+    if (!ws) {
+        ws = g_pCompositor->createNewWorkspace(wid, monitor->m_id);
     }
 
-    HyprlandAPI::invokeHyprctlCommand("dispatch", "movetoworkspacesilent " + moveCmd);
+    PHLWINDOW win = window;
+    if (!win) {
+        win = Desktop::focusState()->window();
+    }
+
+    if (win) {
+        g_pCompositor->moveWindowToWorkspaceSafe(win, ws);
+    }
+
     return vdeskId;
 }
 
