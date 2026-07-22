@@ -78,7 +78,8 @@ runs:
           libspng \
           libjxl \
           libjpeg-turbo \
-          re2
+          re2 \
+          sdbus-cpp
 
     - name: Get hyprwayland-scanner-git
       shell: bash
