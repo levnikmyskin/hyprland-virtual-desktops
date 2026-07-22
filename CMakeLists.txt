@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -21,7 +21,7 @@ if(CMAKE_EXPORT_COMPILE_COMMANDS)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_definitions(DEBUG)
+    add_compile_definitions(HYPRLAND_VIRTUAL_DESKTOPS_DEBUG)
 else()
     add_compile_options(-O2)
 endif()
@@ -37,6 +37,7 @@ pkg_check_modules(deps REQUIRED IMPORTED_TARGET
     hyprland
     libdrm
     pixman-1
+    lua
 )
 target_link_libraries(hyprland-virtual-desktops PRIVATE rt PkgConfig::deps)
 

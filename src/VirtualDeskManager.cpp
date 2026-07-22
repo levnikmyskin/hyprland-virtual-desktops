@@ -5,6 +5,10 @@
 #include <ranges>
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
+#include <src/desktop/state/GlobalWindowController.hpp>
+#include <src/state/MonitorState.hpp>
+#include <src/state/WorkspaceState.hpp>
+#include <src/state/WorkspacePlacementController.hpp>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -64,7 +68,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [lmon, workspaceId] : layout) {
-        CSharedPointer<CMonitor> mon = lmon;
+        CSharedPointer<Monitor::CMonitor> mon = lmon;
         if (!mon || !mon->m_enabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
             mon = activeVdesk()->deleteInvalidMonitor(mon);
@@ -74,14 +78,15 @@ void VirtualDeskManager::applyCurrentVDesk() {
                 return;
             }
         }
-        PHLWORKSPACE workspace = g_pCompositor->getWorkspaceByID(workspaceId);
+
+        auto workspace = State::workspaceState()->query().id(workspaceId).run();
         if (!workspace) {
             printLog("Creating workspace " + std::to_string(workspaceId));
-            workspace = g_pCompositor->createNewWorkspace(workspaceId, mon->m_id);
+            workspace = State::workspaceState()->create(workspaceId, mon->m_id);
         }
 
         if (workspace->m_monitor != mon)
-            g_pCompositor->moveWorkspaceToMonitor(workspace, currentMonitor);
+            State::workspacePlacementController()->moveWorkspaceToMonitor(workspace, mon);
 
         // Hack: we change the workspace on the current monitor as our last operation,
         // so that we also automatically focus it
@@ -123,8 +128,9 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // if no arg is provided, it's the currently focussed monitor and otherwise
     // it's the monitor of the window matched by the arg regex
     PHLMONITORREF monitor = Desktop::focusState()->monitor();
+    PHLWINDOW     window  = nullptr;
     if (arg != "") {
-        PHLWINDOW window = g_pCompositor->getWindowByRegex(arg);
+        window = Desktop::viewState()->query().selector(arg).runWindow();
         if (!window) {
             printLog(std::format("Window {} does not exist???", arg), Log::ERR);
         } else {
@@ -132,24 +138,36 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         }
     }
 
+    const auto& layout = vdesk->activeLayout(conf);
+    if (layout.empty()) {
+        printLog(std::format("vdesk {} has an empty layout; cannot move window", vdeskId), Log::WARN);
+        return vdeskId;
+    }
+
     // take the first workspace wherever in the layout
     // and later go for the workspace which is on the same monitor
     // of the window
-    auto wid = vdesk->activeLayout(conf).begin()->second;
-    for (auto const& [mon, workspace] : vdesk->activeLayout(conf)) {
+    auto wid = layout.begin()->second;
+    for (auto const& [mon, workspace] : layout) {
         if (mon == monitor) {
             wid = workspace;
         }
     }
 
-    std::string moveCmd;
-    if (arg == "") {
-        moveCmd = std::to_string(wid);
-    } else {
-        moveCmd = std::to_string(wid) + "," + arg;
+    PHLWORKSPACE ws = State::workspaceState()->query().id(wid).run();
+    if (!ws) {
+        ws = State::workspaceState()->create(wid, monitor->m_id);
     }
 
-    HyprlandAPI::invokeHyprctlCommand("dispatch", "movetoworkspacesilent " + moveCmd);
+    PHLWINDOW win = window;
+    if (!win) {
+        win = Desktop::focusState()->window();
+    }
+
+    if (win) {
+        Desktop::globalWindowController()->moveWindowToWorkspace(win, ws);
+    }
+
     return vdeskId;
 }
 
@@ -179,29 +197,27 @@ void VirtualDeskManager::loadLayoutConf() {
     // Maybe in a future release :)
     if (confLoaded)
         return;
-    static auto* const PREMEMBER_LAYOUT = (Hyprlang::STRING const*)HyprlandAPI::getConfigValue(PHANDLE, REMEMBER_LAYOUT_CONF)->getDataStaticPtr();
-    conf                                = layoutConfFromString(*PREMEMBER_LAYOUT);
-    confLoaded                          = true;
+    conf       = layoutConfFromString(config.rememberLayout->value());
+    confLoaded = true;
 }
 
 void VirtualDeskManager::cycleWorkspaces() {
-    static auto* const PCYCLEWORKSPACES = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, CYCLEWORKSPACES_CONF)->getDataStaticPtr();
-    if (!**PCYCLEWORKSPACES)
+    if (!config.cycleWorkspaces->value())
         return;
 
-    auto                     n_monitors     = g_pCompositor->m_monitors.size();
-    CSharedPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
+    auto                              n_monitors     = State::monitorState()->monitors().size();
+    CSharedPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
     // in order to consistently move left/right or up/down.
     if (n_monitors == 2) {
-        int  other    = g_pCompositor->m_monitors[0]->m_id == currentMonitor->m_id;
-        auto otherMon = g_pCompositor->m_monitors[other];
-        g_pCompositor->swapActiveWorkspaces(currentMonitor, otherMon);
+        int  other    = State::monitorState()->monitors()[0]->m_id == currentMonitor->m_id;
+        auto otherMon = State::monitorState()->monitors()[other];
+        State::workspacePlacementController()->swapActiveWorkspaces(currentMonitor, otherMon);
 
-        auto currentWorkspace = g_pCompositor->getWorkspaceByID(currentMonitor->activeWorkspaceID());
-        auto otherWorkspace   = g_pCompositor->getWorkspaceByID(otherMon->activeWorkspaceID());
+        auto currentWorkspace = State::workspaceState()->query().id(currentMonitor->activeWorkspaceID()).run();
+        auto otherWorkspace   = State::workspaceState()->query().id(otherMon->activeWorkspaceID()).run();
         activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_id, currentMonitor);
         activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_id, otherMon);
     } else if (n_monitors > 2) {
@@ -211,7 +227,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<CMonitor>& monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<Monitor::CMonitor>& monitor) {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf, monitor);
@@ -292,12 +308,12 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CSharedPointer<CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<CMonitor> currentMonitor = Desktop::focusState()->monitor();
+CSharedPointer<Monitor::CMonitor> VirtualDeskManager::getFocusedMonitor() {
+    CWeakPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output)) {
-        for (auto mon : g_pCompositor->m_monitors) {
+        for (auto mon : State::monitorState()->monitors()) {
             if (mon->m_enabled && mon->m_output)
                 return mon;
         }

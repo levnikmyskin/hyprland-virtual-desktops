@@ -1,20 +1,18 @@
 #pragma once
+#include "globals.hpp"
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <string>
 #include <hyprland/src/Compositor.hpp>
-#include <hyprland/src/helpers/Monitor.hpp>
+#include <hyprland/src/output/Monitor.hpp>
+#include <hyprland/src/state/WorkspaceState.hpp>
+#include <hyprland/src/state/WorkspaceQuery.hpp>
+#include <hyprland/src/state/MonitorState.hpp>
 #include <hyprutils/cli/Logger.hpp>
 
 using namespace Hyprutils::Memory;
-
-const std::string VIRTUALDESK_NAMES_CONF = "plugin:virtual-desktops:names";
-const std::string CYCLEWORKSPACES_CONF   = "plugin:virtual-desktops:cycleworkspaces";
-const std::string REMEMBER_LAYOUT_CONF   = "plugin:virtual-desktops:rememberlayout";
-const std::string NOTIFY_INIT            = "plugin:virtual-desktops:notifyinit";
-const std::string VERBOSE_LOGS           = "plugin:virtual-desktops:verbose_logging";
 
 const std::string STICKY_RULES_KEYW = "stickyrule";
 
@@ -53,17 +51,22 @@ enum RememberLayoutConf {
     monitors = 2
 };
 
-RememberLayoutConf                    layoutConfFromInt(const int64_t);
-RememberLayoutConf                    layoutConfFromString(const std::string& conf);
-void                                  printLog(std::string s, Hyprutils::CLI::eLogLevel level = Log::INFO);
+RememberLayoutConf                             layoutConfFromInt(const int64_t);
+RememberLayoutConf                             layoutConfFromString(const std::string& conf);
+void                                           printLog(std::string s, Hyprutils::CLI::eLogLevel level = Log::INFO);
 
-std::string                           parseMoveDispatch(std::string& arg);
-bool                                  extractBool(std::string& arg);
-std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude = nullptr);
+std::string                                    parseMoveDispatch(std::string& arg);
+bool                                           extractBool(std::string& arg);
+std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
 
-std::string                           ltrim(const std::string& s);
-std::string                           rtrim(const std::string& s);
-std::string                           trim(const std::string& s);
+std::string                                    ltrim(const std::string& s);
+std::string                                    rtrim(const std::string& s);
+std::string                                    trim(const std::string& s);
 
-bool                                  isVerbose();
+inline bool                           isVerbose() {
+    if (!PHANDLE) {
+        return true;
+    }
+    return config.verboseLogging->value();
+}
 #endif

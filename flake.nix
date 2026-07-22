@@ -45,6 +45,7 @@
                 wayland-protocols
                 cairo
                 pango
+                lua
                 wlroots
                 clang
                 clang-tools

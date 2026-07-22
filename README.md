@@ -19,11 +19,13 @@ Feel free to join our [matrix room](https://matrix.to/#/#hypr-virtual-desktops:m
   - [How does this work?](#how-does-this-work)
     - [It's just workspaces, really](#its-just-workspaces-really)
     - [Hyprctl dispatchers](#hyprctl-dispatchers)
+      - [Lua binds / wrappers](#lua-binds--wrappers)
       - [Mix with Hyprland native workspaces](#mix-with-hyprland-native-workspaces)
     - [Hyprctl commands](#hyprctl-commands)
     - [Hyprland keywords](#hyprland-keywords)
       - [Syntax](#syntax)
       - [Examples](#examples)
+      - [Lua config alternative](#lua-config-alternative)
     - [Configuration values](#configuration-values)
       - [Example config](#example-config)
   - [Layouts](#layouts)
@@ -105,6 +107,57 @@ plugin will remember this association even if Hyprland kills the related workspa
 The `movetodesk` and `movetodesksilent` dispatchers work similarly to
 Hyprland's `movetoworkspace` and `movetoworkspacesilent` dispatchers. See [Hyprland's wiki](https://wiki.hyprland.org/Configuring/Dispatchers/#list-of-dispatchers). Of course, make sure to use the `vdesk` syntax above instead of Hyprland's.
 
+#### Lua binds / wrappers
+
+If you are using the Lua configuration format (`hyprland.lua`), the plugin exposes wrapper functions under the `hl.plugin.virtual_desktops` namespace. 
+
+Unlike Hyprlang configuration where you reference dispatchers by name strings, in Lua you call these functions directly within your keybind callbacks:
+
+| Lua Function | Corresponding Dispatcher | Description |
+| ------------ | ------------------------ | ----------- |
+| `hl.plugin.virtual_desktops.vdesk(vdesk)` | `vdesk` | Switch to virtual desktop `vdesk` (ID or name) |
+| `hl.plugin.virtual_desktops.lastdesk()` | `lastdesk` | Switch to last visited virtual desktop |
+| `hl.plugin.virtual_desktops.prevdesk()` | `prevdesk` | Switch to previous virtual desktop |
+| `hl.plugin.virtual_desktops.nextdesk()` | `nextdesk` | Switch to next virtual desktop |
+| `hl.plugin.virtual_desktops.cyclevdesks()` | `cyclevdesks` | Cycle forward between existing virtual desktops |
+| `hl.plugin.virtual_desktops.backcyclevdesks()` | `backcyclevdesks` | Cycle backward between existing virtual desktops |
+| `hl.plugin.virtual_desktops.movetodesk(arg)` | `movetodesk` | Move active window to `arg` (vdesk) |
+| `hl.plugin.virtual_desktops.movetodesksilent(arg)` | `movetodesksilent` | Move active window to `arg` silently |
+| `hl.plugin.virtual_desktops.movetolastdesk(arg)` | `movetolastdesk` | Move active window to last vdesk |
+| `hl.plugin.virtual_desktops.movetolastdesksilent(arg)` | `movetolastdesksilent` | Move active window to last vdesk silently |
+| `hl.plugin.virtual_desktops.movetoprevdesk(arg)` | `movetoprevdesk` | Move active window to previous vdesk |
+| `hl.plugin.virtual_desktops.movetoprevdesksilent(arg)` | `movetoprevdesksilent` | Move active window to previous vdesk silently |
+| `hl.plugin.virtual_desktops.movetonextdesk(arg)` | `movetonextdesk` | Move active window to next vdesk |
+| `hl.plugin.virtual_desktops.movetonextdesksilent(arg)` | `movetonextdesksilent` | Move active window to next vdesk silently |
+| `hl.plugin.virtual_desktops.vdeskreset(arg)` | `vdeskreset` | Reset layout configs on target/all vdesks |
+
+##### Lua Binding Example:
+
+```lua
+-- Switch virtual desktops (1-3)
+for i = 1, 3 do
+    hl.bind("SUPER + " .. i, function()
+        hl.plugin.virtual_desktops.vdesk(tostring(i))
+    end, { description = "Switch to vdesk " .. i })
+end
+
+-- Move window to virtual desktops (1-3)
+for i = 1, 3 do
+    hl.bind("SUPER + SHIFT + " .. i, function()
+        hl.plugin.virtual_desktops.movetodesk(tostring(i))
+    end, { description = "Move window to vdesk " .. i })
+end
+
+-- Cycle virtual desktops
+hl.bind("CTRL + ALT + Left", function()
+    hl.plugin.virtual_desktops.prevdesk()
+end, { description = "Switch to previous virtual desktop" })
+
+hl.bind("CTRL + ALT + Right", function()
+    hl.plugin.virtual_desktops.nextdesk()
+end, { description = "Switch to next virtual desktop" })
+```
+
 #### Mix with Hyprland native workspaces
 
 You can use `hyprctl dispatch vdesk n`, even if you have
@@ -169,6 +222,17 @@ stickyrule = window,vdesk
 `stickyrule = class:^(kittysticky)$,3`
 `stickyrule = title:thunderbird,mail`
 
+#### Lua config alternative
+
+If you are using the Lua configuration format, you can register sticky rules by invoking the `stickyrule` function exposed by the plugin:
+
+```lua
+if hl.plugin.virtual_desktops ~= nil then
+    hl.plugin.virtual_desktops.stickyrule("class:^(kittysticky)$,3")
+    hl.plugin.virtual_desktops.stickyrule("title:thunderbird,mail")
+end
+```
+
 ### Configuration values
 
 This plugin exposes a few configuration options, under the `plugin:virtual-desktops:` category, namely:
@@ -180,12 +244,32 @@ This plugin exposes a few configuration options, under the `plugin:virtual-deskt
 | rememberlayout  | chooses how layouts should be remembered (see [Layouts](#Layouts)), defaults to `size`                                                                                                                         | `none`, `size` or `monitors` | `remember = size`                                |
 | notifyinit      | chooses whether to display the startup notification, defaults to 1                                                                                                                                             | `0` or `1`                   | `notifyinit = 0`                                 |
 | verbose_logging | whether to log more stuff, defaults to 0                                                                                                                                                                       | `0` or `1`                   | `verbose_logging = 0`                            |
+| monitor_order   | comma-separated list of monitors in desired order (left to right)                                                                                                                                              | `string`, see below          | `monitor_order = DP-2, DP-1, DP-3`               |
 
 - The `names` config option maps virtual desktop IDs to a name (you can then use this with the hyprctl [dispatchers](#hyprctl-dispatchers));
 - `cycleworkspaces`: THIS CURRENTLY DOES NOT WORK WITH MORE THAN 2 MONITORS. If you need this feature, please feel welcome to submit a PR ^^.
+- `monitor_order`: specifies the order of monitors (e.g. left to right) to layout virtual desktops workspaces on them consistently. If unset, defaults to Hyprland's internal discovery order.
 
 #### Example config
 
+* Lua Config
+
+```lua
+hl.config({
+    plugin = {
+        ["virtual_desktops"] = {
+            names = "1:coding, 2:internet, 3:mail and chats",
+            cycleworkspaces = 0,
+            rememberlayout = "size",
+            notifyinit = 1,
+            verbose_logging = 1,
+            monitor_order = "DP-2, DP-1, DP-3",
+        },
+    }
+})
+```
+
+* Or hyprland/legacy Config
 ```ini
 stickyrule = class:^(kittysticky)$,3
 stickyrule = title:thunderbird,mail
@@ -197,9 +281,12 @@ plugin {
         rememberlayout = size
         notifyinit = 0
         verbose_logging = 0
+        monitor_order = DP-2, DP-1, DP-3
     }
 }
 ```
+
+
 
 ## Layouts
 
@@ -248,6 +335,13 @@ If we now disconnect monitor C and reconnect monitor B: our connected monitors a
 - if `rememberlayout = none`, a new layout will be created with defaults: workspace 1 on monitor A, workspace 2 on monitor C.
 
 ## Install
+
+### Dependencies
+
+This plugin requires **Lua** (development headers and library) to be installed:
+- **Arch Linux**: `lua`
+- **Fedora**: `lua-devel`
+- **Ubuntu/Debian**: `liblua5.4-dev` (or equivalent `liblua-dev`)
 
 In order to use plugins, you should compile Hyprland yourself. See [Hyprland Wiki#Using Plugins](https://wiki.hyprland.org/Plugins/Using-Plugins/).
 

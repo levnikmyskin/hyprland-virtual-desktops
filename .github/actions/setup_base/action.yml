@@ -53,6 +53,7 @@ runs:
           libxkbfile \
           libxcursor \
           lld \
+          lua \
           meson \
           muparser \
           ninja \
@@ -77,7 +78,8 @@ runs:
           libspng \
           libjxl \
           libjpeg-turbo \
-          re2
+          re2 \
+          sdbus-cpp
 
     - name: Get hyprwayland-scanner-git
       shell: bash

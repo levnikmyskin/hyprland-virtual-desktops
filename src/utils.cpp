@@ -1,8 +1,11 @@
 #include "utils.hpp"
 #include "globals.hpp"
+#include <src/state/MonitorState.hpp>
+#include <algorithm>
+#include <ranges>
 
 void printLog(std::string s, Hyprutils::CLI::eLogLevel level) {
-    // #ifdef DEBUG
+    // #ifdef HYPRLAND_VIRTUAL_DESKTOPS_DEBUG
     //     std::cout << "[virtual-desktops] " + s << std::endl;
     // #endif
     Log::logger->log(level, "[virtual-desktops] {}", s);
@@ -51,24 +54,14 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
     return RememberLayoutConf::monitors;
 }
 
-bool isVerbose() {
-    // this might happen if called before plugin is initalized
-    if (!PHANDLE)
-        return true;
-    static auto* const PVERBOSELOGS = (Hyprlang::INT* const*)HyprlandAPI::getConfigValue(PHANDLE, VERBOSE_LOGS)->getDataStaticPtr();
-    return **PVERBOSELOGS;
-}
+std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude) {
+    std::vector<CSharedPointer<Monitor::CMonitor>> monitors;
 
-std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPointer<CMonitor>& exclude) {
-    std::vector<CSharedPointer<CMonitor>> monitors;
-    if (g_pCompositor->m_monitors.empty())
+    if (State::monitorState()->monitors().empty())
         return monitors;
 
-    std::copy_if(g_pCompositor->m_monitors.begin(), g_pCompositor->m_monitors.end(), std::back_inserter(monitors), [&](const auto mon) {
+    std::copy_if(State::monitorState()->monitors().begin(), State::monitorState()->monitors().end(), std::back_inserter(monitors), [&](const auto mon) {
         if (!mon)
-            return false;
-
-        if (g_pCompositor->m_unsafeOutput && g_pCompositor->m_unsafeOutput->m_name == mon->m_name)
             return false;
 
         if (!mon->m_output)
@@ -82,6 +75,27 @@ std::vector<CSharedPointer<CMonitor>> currentlyEnabledMonitors(const CSharedPoin
 
         return mon->m_enabled;
     });
+
+    std::string order_str = config.monitorOrder->value();
+    if (order_str != "unset" && !order_str.empty()) {
+        std::vector<std::string> order;
+        for (const auto subrange : std::views::split(order_str, ',')) {
+            order.push_back(trim(std::string{subrange.begin(), subrange.end()}));
+        }
+
+        std::sort(monitors.begin(), monitors.end(), [&order](const auto& a, const auto& b) {
+            auto it_a = std::find(order.begin(), order.end(), a->m_name);
+            auto it_b = std::find(order.begin(), order.end(), b->m_name);
+
+            if (it_a != order.end() && it_b != order.end()) {
+                return it_a < it_b;
+            }
+            if (it_a != order.end()) return true;
+            if (it_b != order.end()) return false;
+            return a->m_name < b->m_name;
+        });
+    }
+
     return monitors;
 }
 
