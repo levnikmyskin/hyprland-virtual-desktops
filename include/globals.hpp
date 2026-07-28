@@ -9,6 +9,7 @@ inline HANDLE PHANDLE = nullptr;
 struct SConfig {
     SP<Config::Values::CStringValue> names;
     SP<Config::Values::CIntValue>    cycleWorkspaces;
+    SP<Config::Values::CIntValue>    cyclePopulatedOnly;
     SP<Config::Values::CStringValue> rememberLayout;
     SP<Config::Values::CIntValue>    notifyInit;
     SP<Config::Values::CIntValue>    verboseLogging;
@@ -16,10 +17,11 @@ struct SConfig {
 };
 
 inline SConfig config = {
-    .names           = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:names", "map a vdesk id with a name", "unset"),
-    .cycleWorkspaces = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:cycleworkspaces", "if set to 1, cycles between vdesks", 1),
-    .rememberLayout  = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:rememberlayout", "chooses how layouts should be remembered", "size"),
-    .notifyInit      = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:notifyinit", "chooses whether to display the startup notification", 1),
-    .verboseLogging  = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:verbose_logging", "whether to log more stuff", 0),
-    .monitorOrder    = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:monitor_order", "comma-separated list of monitors in order", "unset"),
+    .names             = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:names", "map a vdesk id with a name", "unset"),
+    .cycleWorkspaces   = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:cycleworkspaces", "if set to 1, cycles between vdesks", 1),
+    .cyclePopulatedOnly = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:cycle_populated_only", "if set to 1, cyclevdesks/backcyclevdesks skip empty vdesks", 0),
+    .rememberLayout    = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:rememberlayout", "chooses how layouts should be remembered", "size"),
+    .notifyInit        = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:notifyinit", "chooses whether to display the startup notification", 1),
+    .verboseLogging    = makeShared<Config::Values::CIntValue>("plugin:virtual-desktops:verbose_logging", "whether to log more stuff", 0),
+    .monitorOrder      = makeShared<Config::Values::CStringValue>("plugin:virtual-desktops:monitor_order", "comma-separated list of monitors in order", "unset"),
 };
