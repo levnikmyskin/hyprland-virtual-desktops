@@ -4,6 +4,7 @@
 #include <hyprland/src/helpers/MiscFunctions.hpp>
 #include <hyprland/src/desktop/Workspace.hpp>
 #include <hyprland/src/event/EventBus.hpp>
+#include <hyprland/src/ipc/s1/S1.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -146,7 +147,7 @@ SDispatchResult moveToNextDeskSilentDispatch(std::string arg) {
     return SDispatchResult{};
 }
 
-std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printVDeskDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     parseNamesConf(config.names->value());
 
     arg.erase(0, PRINTDESK_DISPATCH_STR.length());
@@ -174,10 +175,10 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
         vdeskName = manager->activeVdesk()->name;
     }
 
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::eOutputFormat::FORMAT_NORMAL) {
         return std::format("Virtual desk {}: {}", vdeskId, vdeskName);
 
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::eOutputFormat::FORMAT_JSON) {
         return std::format(R"#({{
     "virtualdesk": {{
         "id": {},
@@ -189,11 +190,11 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return "";
 }
 
-std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printStateDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     std::string out;
     int         entries = 0;
 
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::eOutputFormat::FORMAT_NORMAL) {
         out += "Virtual desks\n";
 
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
@@ -225,7 +226,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
         // remove last newline
         if (entries > 0)
             out.pop_back();
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::eOutputFormat::FORMAT_JSON) {
         std::string vdesks;
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
@@ -276,16 +277,16 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return out;
 }
 
-std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printLayoutDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     auto        activeDesk = manager->activeVdesk();
     auto        layout     = activeDesk->activeLayout(manager->conf);
     std::string out;
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::eOutputFormat::FORMAT_NORMAL) {
         out += std::format("Active desk: {}\nActive layout size: {};\nMonitors:", activeDesk->name, layout.size());
         for (auto const& [mon, wid] : layout) {
             out += std::format("\n\t{}; Workspace {}", escapeJSONStrings(mon->m_name), wid);
         }
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::eOutputFormat::FORMAT_JSON) {
         out += std::format(R"#({{
             "activeDesk": "{}",
             "activeLayoutSize": {},
@@ -397,30 +398,28 @@ void onConfigReloaded() {
     manager->loadLayoutConf();
 }
 
-void registerHyprctlCommands() {
-    SHyprCtlCommand cmd;
+// Yoinked from here: https://github.com/hyprwm/Hyprland/blob/5c6f0aa2df6d1698ee7174c69d3123cb236c6fde/src/ipc/s1/Commands.cpp#L1877-L1884
+template <typename F>
+static IPC::Socket1::SCommand legacyCommand(std::string name, F handler) {
+    return IPC::Socket1::SCommand{
+        .name    = std::move(name),
+        .handler = [handler](const IPC::Socket1::SRequest& request) { return IPC::Socket1::SResponse{handler(request.format, request.command)}; },
+    };
+}
 
+void registerHyprctlCommands() {
     // Register printlayout
-    cmd.name  = PRINTLAYOUT_DISPATCH_STR;
-    cmd.fn    = printLayoutDispatch;
-    cmd.exact = true;
-    auto ptr  = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    auto ptr = HyprlandAPI::registerHyprCtlCommand(PHANDLE, legacyCommand(PRINTLAYOUT_DISPATCH_STR, printLayoutDispatch));
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
 
     // Register printstate
-    cmd.name  = PRINTSTATE_DISPATCH_STR;
-    cmd.fn    = printStateDispatch;
-    cmd.exact = true;
-    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    ptr = HyprlandAPI::registerHyprCtlCommand(PHANDLE, legacyCommand(PRINTSTATE_DISPATCH_STR, printStateDispatch));
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTSTATE_DISPATCH_STR));
 
     // Register printdesk
-    cmd.name  = PRINTDESK_DISPATCH_STR;
-    cmd.fn    = printVDeskDispatch;
-    cmd.exact = false;
-    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    ptr = HyprlandAPI::registerHyprCtlCommand(PHANDLE, legacyCommand(PRINTDESK_DISPATCH_STR, printVDeskDispatch));
     if (!ptr)
         printLog(std::format("Failed to register hyprctl command: {}", PRINTDESK_DISPATCH_STR));
 }

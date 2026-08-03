@@ -1,14 +1,16 @@
 #include "VirtualDeskManager.hpp"
 #include "globals.hpp"
+#include "utils.hpp"
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
-#include <hyprland/src/managers/EventManager.hpp>
+#include <hyprland/src/ipc/s2/S2.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <src/desktop/state/GlobalWindowController.hpp>
 #include <src/state/MonitorState.hpp>
 #include <src/state/WorkspaceState.hpp>
 #include <src/state/WorkspacePlacementController.hpp>
+#include <string>
 
 VirtualDeskManager::VirtualDeskManager() {
     this->conf = RememberLayoutConf::size;
@@ -99,7 +101,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     if (currentMonitor && focusedWorkspace)
         currentMonitor->changeWorkspace(focusedWorkspace, false);
 
-    g_pEventManager->postEvent(SHyprIPCEvent{VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey)});
+    IPC::Socket2::sock()->postEvent({ VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey) });
 }
 
 int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
