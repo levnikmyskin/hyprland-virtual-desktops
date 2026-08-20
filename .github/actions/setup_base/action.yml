@@ -52,6 +52,7 @@ runs:
           libxkbcommon \
           libxkbfile \
           libxcursor \
+          libcanberra \
           lld \
           lua \
           meson \

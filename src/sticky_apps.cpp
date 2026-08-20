@@ -37,7 +37,7 @@ void StickyApps::matchRules(const std::vector<SStickyRule>& rules, std::unique_p
                 continue;
             if (ruleMatch(r.value, windowProp)) {
                 printLog(std::format("rule matched {}: {}", r.value, windowProp));
-                auto windowPidFmt = std::format("pid:{}", w->getPID());
+                auto windowPidFmt = std::format("pid:{}", w->backend().pid());
                 auto map          = vdeskManager->vdesksMap;
                 if (map.contains(r.vdesk) && map[r.vdesk]->isWorkspaceOnActiveLayout(w->workspaceID()))
                     continue;
@@ -54,7 +54,7 @@ int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::un
             continue;
         if (ruleMatch(r.value, windowProp)) {
             printLog(std::format("rule matched {}: {}", r.value, windowProp));
-            auto windowPidFmt = std::format("pid:{}", window->getPID());
+            auto windowPidFmt = std::format("pid:{}", window->backend().pid());
             auto map          = vdeskManager->vdesksMap;
             if (map.find(r.vdesk) != map.end() && map[r.vdesk]->isWorkspaceOnActiveLayout(window->workspaceID()))
                 continue;
@@ -67,13 +67,13 @@ int StickyApps::matchRuleOnWindow(const std::vector<SStickyRule>& rules, std::un
 
 const std::string StickyApps::extractProperty(const SStickyRule& rule, PHLWINDOW window) {
     if (rule.property == TITLE) {
-        return window->m_title;
+        return window->metadata().title();
     } else if (rule.property == INITIAL_TITLE) {
-        return window->m_initialTitle;
+        return window->metadata().initialTitle();
     } else if (rule.property == CLASS) {
-        return window->m_class;
+        return window->metadata().appID();
     } else if (rule.property == INITIAL_CLASS) {
-        return window->m_initialClass;
+        return window->metadata().initialAppID();
     }
     return "";
 }
