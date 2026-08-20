@@ -3,6 +3,7 @@
 #include <hyprland/src/Compositor.hpp>
 #include <format>
 #include <ranges>
+#include <algorithm>
 #include <hyprland/src/managers/EventManager.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <src/desktop/state/GlobalWindowController.hpp>
@@ -270,24 +271,55 @@ void VirtualDeskManager::resetVdesk(const std::string& arg) {
     vdesksMap[vdeskId]->resetLayout();
 }
 
-int VirtualDeskManager::prevDeskId(bool backwardCycle) {
-    int prevId = activeVdesk()->id - 1;
-    if (prevId < 1) {
-        prevId = 1;
-        if (backwardCycle) {
-            auto keys = std::views::keys(vdesksMap);
-            prevId    = std::ranges::max(keys);
-        }
+bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
+    if (!vdesksMap.contains(vdeskId))
+        return false;
+    auto& vdesk = vdesksMap[vdeskId];
+    for (const auto& [_, workspaceId] : vdesk->activeLayout(conf)) {
+        auto workspace = State::workspaceState()->query().id(workspaceId).run();
+        if (workspace && workspace->getWindowCount() > 0)
+            return true;
     }
-    return prevId;
+    return false;
+}
+
+std::vector<int> VirtualDeskManager::getValidDeskIds() {
+    const int currentId = activeVdesk()->id;
+    const bool populatedOnly = config.cyclePopulatedOnly->value();
+    std::vector<int> ids;
+    ids.reserve(vdesksMap.size());
+    for (const auto& [id, _] : vdesksMap) {
+        if (id == currentId || !populatedOnly || isDeskPopulated(id))
+            ids.push_back(id);
+    }
+    std::sort(ids.begin(), ids.end());
+    return ids;
+}
+
+int VirtualDeskManager::cycleDeskId(bool forward, bool allowCycle) {
+    auto ids = getValidDeskIds();
+    if (ids.empty())
+        return activeVdesk()->id;
+    const int currentId = activeVdesk()->id;
+    auto it = std::find(ids.begin(), ids.end(), currentId);
+    if (it == ids.end())
+        return currentId;
+    if (forward) {
+        if (++it == ids.end())
+            return allowCycle ? ids.front() : currentId;
+        return *it;
+    }
+    if (it == ids.begin())
+        return allowCycle ? ids.back() : currentId;
+    return *--it;
+}
+
+int VirtualDeskManager::prevDeskId(bool backwardCycle) {
+    return cycleDeskId(false, backwardCycle);
 }
 
 int VirtualDeskManager::nextDeskId(bool cycle) {
-    int nextId = activeVdesk()->id + 1;
-    if (cycle) {
-        nextId = vdesksMap.contains(nextId) ? nextId : 1;
-    }
-    return nextId;
+    return cycleDeskId(true, cycle);
 }
 
 std::shared_ptr<VirtualDesk> VirtualDeskManager::getOrCreateVdesk(int vdeskId) {

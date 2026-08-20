@@ -465,6 +465,7 @@ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
     // Configs
     HyprlandAPI::addConfigValueV2(PHANDLE, config.names);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.cycleWorkspaces);
+    HyprlandAPI::addConfigValueV2(PHANDLE, config.cyclePopulatedOnly);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.rememberLayout);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.notifyInit);
     HyprlandAPI::addConfigValueV2(PHANDLE, config.verboseLogging);
