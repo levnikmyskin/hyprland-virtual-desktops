@@ -31,6 +31,7 @@ class VirtualDeskManager {
     int                                                   nextDeskId(bool cycle);
     int                                                   getDeskIdFromName(const std::string& name, bool createIfNotFound = true);
     bool                                                  isDeskPopulated(int vdeskId);
+    bool                                                  isWorkspaceOwnedByOtherVdesk(WORKSPACEID workspaceId, int vdeskId);
 
   private:
     int                               m_activeDeskKey = 1;

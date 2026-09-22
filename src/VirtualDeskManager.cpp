@@ -283,6 +283,23 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
     return false;
 }
 
+bool VirtualDeskManager::isWorkspaceOwnedByOtherVdesk(WORKSPACEID workspaceId, int vdeskId) {
+    // The active vdesk keeps recording its own workspaces (echo from
+    // applyCurrentVDesk/cycleWorkspaces), even if a duplicate exists already.
+    if (vdesksMap.contains(vdeskId) && vdesksMap[vdeskId] && vdesksMap[vdeskId]->isWorkspaceOnActiveLayout(workspaceId))
+        return false;
+
+    // Non-mutating check: deliberately NOT calling activeLayout(conf), since it
+    // would rewrite layouts through checkAndAdaptLayout.
+    for (const auto& [id, vdesk] : vdesksMap) {
+        if (id == vdeskId || !vdesk)
+            continue;
+        if (vdesk->isWorkspaceOnActiveLayout(workspaceId))
+            return true;
+    }
+    return false;
+}
+
 std::vector<int> VirtualDeskManager::getValidDeskIds() {
     const int currentId = activeVdesk()->id;
     const bool populatedOnly = config.cyclePopulatedOnly->value();

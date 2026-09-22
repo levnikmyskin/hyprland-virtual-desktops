@@ -328,9 +328,22 @@ void onWorkspaceChange(PHLWORKSPACE workspace) {
     if (!monitor || !monitor->m_enabled)
         return;
 
-    manager->activeVdesk()->changeWorkspaceOnMonitor(workspace->m_id, monitor);
+    auto vdesk = manager->activeVdesk();
+
+    // A workspace belongs to a single vdesk. A focus pull onto a workspace
+    // owned by another vdesk must not record it in the active vdesk's layout:
+    // otherwise the same workspace ends up in two layouts, and its windows
+    // follow along on every vdesk switch. Only skip workspaces that are
+    // already owned by a *different* vdesk; our own and not-yet-owned
+    // workspaces keep updating the layout as before.
+    if (manager->isWorkspaceOwnedByOtherVdesk(workspace->m_id, vdesk->id)) {
+        if (isVerbose())
+            printLog(std::format("not recording workspace {} on vdesk {}: owned by another vdesk", workspace->m_id, vdesk->id));
+        return;
+    }
+
+    vdesk->changeWorkspaceOnMonitor(workspace->m_id, monitor);
     if (isVerbose()) {
-        auto vdesk = manager->activeVdesk();
         printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspace->m_id) + "; on monitor " + std::to_string(monitor->m_id));
     }
 }
