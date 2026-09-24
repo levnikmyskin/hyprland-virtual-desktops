@@ -59,7 +59,8 @@ void VirtualDeskManager::nextDesk(bool cycle) {
 }
 
 void VirtualDeskManager::applyCurrentVDesk() {
-    if (currentlyEnabledMonitors().empty()) {
+    auto enabled = currentlyEnabledMonitors();
+    if (enabled.empty()) {
         printLog("There are no monitors!");
         return;
     }
@@ -68,11 +69,11 @@ void VirtualDeskManager::applyCurrentVDesk() {
     auto         currentMonitor   = getFocusedMonitor();
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
-    for (const auto& [lmon, workspaceId] : layout) {
-        CSharedPointer<Monitor::CMonitor> mon = lmon;
+    for (const auto& [desc, workspaceId] : layout) {
+        CSharedPointer<Monitor::CMonitor> mon = findMonitorByDesc(desc);
         if (!mon || !mon->m_enabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
-            mon = activeVdesk()->deleteInvalidMonitor(mon);
+            mon = VirtualDesk::firstAvailableMonitor(enabled);
             // Big F, we can't do much here
             if (!mon) {
                 printLog("There is no enabled monitor at all. I give up :)");
@@ -148,9 +149,10 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
     // take the first workspace wherever in the layout
     // and later go for the workspace which is on the same monitor
     // of the window
-    auto wid = layout.begin()->second;
-    for (auto const& [mon, workspace] : layout) {
-        if (mon == monitor) {
+    auto targetDesc = monitor ? monitorDesc(monitor.lock()) : std::string("");
+    auto wid        = layout.begin()->second;
+    for (auto const& [desc, workspace] : layout) {
+        if (!targetDesc.empty() && desc == targetDesc) {
             wid = workspace;
         }
     }
@@ -208,6 +210,8 @@ void VirtualDeskManager::cycleWorkspaces() {
 
     auto                              n_monitors     = State::monitorState()->monitors().size();
     CSharedPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
+    if (!currentMonitor)
+        return;
 
     // TODO: implement for more than two monitors as well.
     // This probably requires to compute monitors position
@@ -234,7 +238,7 @@ void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<M
         vdesk->activeLayout(conf, monitor);
         if (monitor)
             printLog(std::format("Deleting monitor with exclude {}", monitor->m_name));
-        vdesk->deleteInvalidMonitor(monitor);
+        vdesk->deleteInvalidMonitorsOnActiveLayout(monitor);
     }
 }
 

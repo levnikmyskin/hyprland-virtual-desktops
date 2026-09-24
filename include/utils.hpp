@@ -59,6 +59,12 @@ std::string                                    parseMoveDispatch(std::string& ar
 bool                                           extractBool(std::string& arg);
 std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
 
+// Stable identity of a monitor used as a layout key: its EDID description when
+// available, otherwise its connector name.
+std::string                                    monitorDesc(const CSharedPointer<Monitor::CMonitor>& monitor);
+// Resolve a layout key back to a currently enabled monitor (nullptr if none).
+CSharedPointer<Monitor::CMonitor>              findMonitorByDesc(const std::string& desc, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
+
 std::string                                    ltrim(const std::string& s);
 std::string                                    rtrim(const std::string& s);
 std::string                                    trim(const std::string& s);
