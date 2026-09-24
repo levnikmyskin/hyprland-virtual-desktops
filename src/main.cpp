@@ -200,7 +200,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             unsigned int windows = 0;
             std::string  workspaces;
             bool         first = true;
-            for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+            for (auto const& [desc, workspaceId] : desk->activeLayout(manager->conf)) {
                 auto workspace = State::workspaceState()->query().id(workspaceId).run();
                 if (workspace) {
                     windows += workspace->getWindowCount();
@@ -231,7 +231,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             unsigned int windows = 0;
             std::string  workspaces;
             bool         first = true;
-            for (auto const& [monitor, workspaceId] : desk->activeLayout(manager->conf)) {
+            for (auto const& [desc, workspaceId] : desk->activeLayout(manager->conf)) {
                 auto workspace = State::workspaceState()->query().id(workspaceId).run();
                 if (workspace) {
                     windows += workspace->getWindowCount();
@@ -282,8 +282,9 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
     std::string out;
     if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
         out += std::format("Active desk: {}\nActive layout size: {};\nMonitors:", activeDesk->name, layout.size());
-        for (auto const& [mon, wid] : layout) {
-            out += std::format("\n\t{}; Workspace {}", escapeJSONStrings(mon->m_name), wid);
+        for (auto const& [desc, wid] : layout) {
+            auto mon = findMonitorByDesc(desc);
+            out += std::format("\n\t{}; Workspace {}", mon ? escapeJSONStrings(mon->m_name) : desc, wid);
         }
     } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
         out += std::format(R"#({{
@@ -293,12 +294,13 @@ std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
                 )#",
                            activeDesk->name, layout.size());
         size_t index = 0;
-        for (auto const& [mon, wid] : layout) {
+        for (auto const& [desc, wid] : layout) {
+            auto mon = findMonitorByDesc(desc);
             out += std::format(R"#({{
                 "monitorId": {},
                 "workspace": {}
             }})#",
-                               mon->m_id, wid);
+                               mon ? mon->m_id : -1, wid);
             if (++index < layout.size())
                 out += ",";
         }
@@ -370,8 +372,9 @@ void onMonitorRemoved(PHLMONITOR monitor) {
     }
     if (isVerbose())
         printLog("Monitor disconnect called with disabled monitor " + monitor->m_name);
+
+    monitorLayoutChanging = false;
     if (!currentlyEnabledMonitors(monitor).empty()) {
-        monitorLayoutChanging = false;
         manager->invalidateAllLayouts();
         manager->deleteInvalidMonitorsOnAllVdesks(monitor);
         manager->applyCurrentVDesk();

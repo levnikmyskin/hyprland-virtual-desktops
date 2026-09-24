@@ -99,6 +99,22 @@ std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CS
     return monitors;
 }
 
+std::string monitorDesc(const CSharedPointer<Monitor::CMonitor>& monitor) {
+    if (!monitor)
+        return "";
+    if (!monitor->m_output)
+        return monitor->m_name;
+    return monitor->m_description.empty() ? monitor->m_name : monitor->m_description;
+}
+
+CSharedPointer<Monitor::CMonitor> findMonitorByDesc(const std::string& desc, const CSharedPointer<Monitor::CMonitor>& exclude) {
+    for (const auto& mon : currentlyEnabledMonitors(exclude)) {
+        if (monitorDesc(mon) == desc)
+            return mon;
+    }
+    return nullptr;
+}
+
 std::string ltrim(const std::string& s) {
     size_t start = s.find_first_not_of(' ');
     return (start == std::string::npos) ? "" : s.substr(start);

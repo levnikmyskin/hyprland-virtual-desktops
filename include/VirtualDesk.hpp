@@ -12,18 +12,14 @@
 using namespace Hyprutils::Memory;
 
 typedef std::unordered_map<int, int> WorkspaceMap;
-// map with Monitor::CMonitor* -> hyprland workspace id
-typedef std::unordered_map<const CSharedPointer<Monitor::CMonitor>, WORKSPACEID> MonitorLayout;
-typedef std::string                                                              MonitorName;
-
-// implement `std::hash` for the CSharedPointer<Monitor> to work with `std::unordered_map`
-template <>
-struct std::hash<const CSharedPointer<Monitor::CMonitor>> {
-    std::size_t operator()(const CSharedPointer<Monitor::CMonitor>& c) const noexcept {
-        auto inner = c.get();
-        return std::hash<Monitor::CMonitor*>{}(inner);
-    }
-};
+// Layouts are keyed on the monitor's *description* (falling back to its
+// connector name), not on a CSharedPointer<CMonitor>. Keying on a shared
+// pointer kept a disconnected monitor alive as a zombie AND lost the remembered
+// workspace mapping, because a reconnected monitor is a new object. A plain
+// string keeps the memory across a dock/unplug cycle without owning the monitor.
+// map with monitor description -> hyprland workspace id
+typedef std::unordered_map<std::string, WORKSPACEID> MonitorLayout;
+typedef std::string                                  MonitorName;
 
 /*
 * Each virtual desk holds a list of layouts. Layouts remember which workspace was on which monitor
@@ -44,9 +40,7 @@ class VirtualDesk {
     void                                     changeWorkspaceOnMonitor(WORKSPACEID, const CSharedPointer<Monitor::CMonitor>&);
     void                                     invalidateActiveLayout();
     void                                     resetLayout();
-    CSharedPointer<Monitor::CMonitor>        deleteInvalidMonitor(const CSharedPointer<Monitor::CMonitor>&);
-    void                                     deleteInvalidMonitorsOnActiveLayout();
-    void                                     deleteInvalidMonitorOnAllLayouts(const CSharedPointer<Monitor::CMonitor>&);
+    void                                     deleteInvalidMonitorsOnActiveLayout(const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
     static CSharedPointer<Monitor::CMonitor> firstAvailableMonitor(const std::vector<CSharedPointer<Monitor::CMonitor>>&);
     bool                                     isWorkspaceOnActiveLayout(WORKSPACEID workspaceId);
 
@@ -54,7 +48,6 @@ class VirtualDesk {
     int                m_activeLayout_idx;
     bool               activeIsValid = false;
     MonitorLayout      generateCurrentMonitorLayout();
-    static std::string monitorDesc(const CSharedPointer<Monitor::CMonitor>&);
     void               checkAndAdaptLayout(MonitorLayout*, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
 };
 #endif
