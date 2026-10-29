@@ -34,14 +34,18 @@ runs:
           glm \
           glslang \
           go \
+          hyprland-protocols \
           hyprlang \
           hyprcursor \
           hyprutils \
           hyprwire \
           jq \
+          lcms2 \
           libc++ \
+          libcanberra \
           libdisplay-info \
           libdrm \
+          libei \
           libepoxy \
           libfontenc \
           libglvnd \
