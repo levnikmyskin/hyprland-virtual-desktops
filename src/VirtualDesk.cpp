@@ -5,6 +5,20 @@
 #include <src/state/WorkspaceState.hpp>
 #include <unordered_set>
 
+PHLMONITOR workspaceMonitor(const PHLWORKSPACE& workspace) {
+    if (!workspace || !workspace->m_monitor)
+        return nullptr;
+    return workspace->m_monitor.lock();
+}
+
+WORKSPACEID workspaceNumericID(const PHLWORKSPACE& workspace) {
+    if (!workspace)
+        return INVALID_WORKSPACEID;
+    if (const auto ID = workspace->numberedID())
+        return *ID;
+    return INVALID_WORKSPACEID;
+}
+
 VirtualDesk::VirtualDesk(int id, std::string name) {
     this->id   = id;
     this->name = name;
@@ -12,7 +26,7 @@ VirtualDesk::VirtualDesk(int id, std::string name) {
     m_activeLayout_idx = 0;
 }
 
-const MonitorLayout& VirtualDesk::activeLayout(const RememberLayoutConf& conf, const CSharedPointer<Monitor::CMonitor>& exclude) {
+const MonitorLayout& VirtualDesk::activeLayout(const RememberLayoutConf& conf, const PHLMONITOR& exclude) {
     if (!activeIsValid) {
         activeIsValid = true;
         searchActiveLayout(conf, exclude);
@@ -20,7 +34,7 @@ const MonitorLayout& VirtualDesk::activeLayout(const RememberLayoutConf& conf, c
     return layouts[m_activeLayout_idx];
 }
 
-MonitorLayout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, const CSharedPointer<Monitor::CMonitor>& exclude) {
+MonitorLayout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, const PHLMONITOR& exclude) {
 
     auto monitors = currentlyEnabledMonitors(exclude);
     switch (conf) {
@@ -91,7 +105,7 @@ MonitorLayout& VirtualDesk::searchActiveLayout(const RememberLayoutConf& conf, c
     return layouts[m_activeLayout_idx];
 }
 
-void VirtualDesk::changeWorkspaceOnMonitor(WORKSPACEID workspaceId, const CSharedPointer<Monitor::CMonitor>& monitor) {
+void VirtualDesk::changeWorkspaceOnMonitor(WORKSPACEID workspaceId, const PHLMONITOR& monitor) {
     if (!monitor)
         return;
     layouts[m_activeLayout_idx][monitorDesc(monitor)] = workspaceId;
@@ -105,7 +119,7 @@ void VirtualDesk::resetLayout() {
     layouts[m_activeLayout_idx] = generateCurrentMonitorLayout();
 }
 
-void VirtualDesk::deleteInvalidMonitorsOnActiveLayout(const CSharedPointer<Monitor::CMonitor>& exclude) {
+void VirtualDesk::deleteInvalidMonitorsOnActiveLayout(const PHLMONITOR& exclude) {
     auto          enabled      = currentlyEnabledMonitors(exclude);
     auto          enabledDescs = setFromMonitors(enabled);
     MonitorLayout layout_copy(layouts[m_activeLayout_idx]);
@@ -125,11 +139,11 @@ void VirtualDesk::deleteInvalidMonitorsOnActiveLayout(const CSharedPointer<Monit
     }
 }
 
-CSharedPointer<Monitor::CMonitor> VirtualDesk::firstAvailableMonitor(const std::vector<CSharedPointer<Monitor::CMonitor>>& enabledMonitors) {
+PHLMONITOR VirtualDesk::firstAvailableMonitor(const std::vector<PHLMONITOR>& enabledMonitors) {
     int                               n = INT_MAX;
-    CSharedPointer<Monitor::CMonitor> newMonitor;
+    PHLMONITOR newMonitor;
     for (const auto& mon : enabledMonitors) {
-        auto workspace = State::workspaceState()->query().id(mon->activeWorkspaceID()).run();
+        auto workspace = mon->m_activeWorkspace;
         if (workspace) {
             auto n_on_mon = workspace->getWindowCount();
             if (n_on_mon < n) {
@@ -149,7 +163,7 @@ bool VirtualDesk::isWorkspaceOnActiveLayout(WORKSPACEID workspaceId) {
     return false;
 }
 
-void VirtualDesk::checkAndAdaptLayout(MonitorLayout* layout, const CSharedPointer<Monitor::CMonitor>& exclude) {
+void VirtualDesk::checkAndAdaptLayout(MonitorLayout* layout, const PHLMONITOR& exclude) {
     auto enabledMons = currentlyEnabledMonitors(exclude);
     if (enabledMons.empty())
         return;
@@ -173,7 +187,7 @@ void VirtualDesk::checkAndAdaptLayout(MonitorLayout* layout, const CSharedPointe
     }
 }
 
-std::unordered_set<std::string> VirtualDesk::setFromMonitors(const std::vector<CSharedPointer<Monitor::CMonitor>>& monitors) {
+std::unordered_set<std::string> VirtualDesk::setFromMonitors(const std::vector<PHLMONITOR>& monitors) {
     std::unordered_set<std::string> set;
     std::transform(monitors.begin(), monitors.end(), std::inserter(set, set.begin()), [](auto mon) { return monitorDesc(mon); });
     return set;
