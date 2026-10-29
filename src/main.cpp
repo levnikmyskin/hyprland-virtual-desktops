@@ -390,7 +390,7 @@ static void rehomeWindowsOnUnownedWorkspaces() {
     // Prefer the workspace of the focused monitor so the rescued windows
     // show up where the user is looking; fall back to the first layout entry.
     WORKSPACEID targetId = layout.begin()->second;
-    auto focusedMonitor  = Desktop::focusState()->monitor().lock();
+    auto focusedMonitor  = Desktop::focusState()->monitor();
     if (focusedMonitor) {
         auto desc = monitorDesc(focusedMonitor);
         if (layout.contains(desc))
