@@ -21,6 +21,9 @@ typedef std::unordered_map<int, int> WorkspaceMap;
 typedef std::unordered_map<std::string, WORKSPACEID> MonitorLayout;
 typedef std::string                                  MonitorName;
 
+PHLMONITOR workspaceMonitor(const PHLWORKSPACE& workspace);
+WORKSPACEID workspaceNumericID(const PHLWORKSPACE& workspace);
+
 /*
 * Each virtual desk holds a list of layouts. Layouts remember which workspace was on which monitor
 * when those exact monitors (or that exact number of monitors) is/was connected.
@@ -34,20 +37,20 @@ class VirtualDesk {
     std::string                              name;
     std::vector<MonitorLayout>               layouts;
 
-    const MonitorLayout&                     activeLayout(const RememberLayoutConf&, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
-    MonitorLayout&                           searchActiveLayout(const RememberLayoutConf&, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
-    std::unordered_set<std::string>          setFromMonitors(const std::vector<CSharedPointer<Monitor::CMonitor>>&);
-    void                                     changeWorkspaceOnMonitor(WORKSPACEID, const CSharedPointer<Monitor::CMonitor>&);
+    const MonitorLayout&                     activeLayout(const RememberLayoutConf&, const PHLMONITOR& exclude = nullptr);
+    MonitorLayout&                           searchActiveLayout(const RememberLayoutConf&, const PHLMONITOR& exclude = nullptr);
+    std::unordered_set<std::string>          setFromMonitors(const std::vector<PHLMONITOR>&);
+    void                                     changeWorkspaceOnMonitor(WORKSPACEID, const PHLMONITOR&);
     void                                     invalidateActiveLayout();
     void                                     resetLayout();
-    void                                     deleteInvalidMonitorsOnActiveLayout(const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
-    static CSharedPointer<Monitor::CMonitor> firstAvailableMonitor(const std::vector<CSharedPointer<Monitor::CMonitor>>&);
+    void                                     deleteInvalidMonitorsOnActiveLayout(const PHLMONITOR& exclude = nullptr);
+    static PHLMONITOR firstAvailableMonitor(const std::vector<PHLMONITOR>&);
     bool                                     isWorkspaceOnActiveLayout(WORKSPACEID workspaceId);
 
   private:
     int                m_activeLayout_idx;
     bool               activeIsValid = false;
     MonitorLayout      generateCurrentMonitorLayout();
-    void               checkAndAdaptLayout(MonitorLayout*, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
+    void               checkAndAdaptLayout(MonitorLayout*, const PHLMONITOR& exclude = nullptr);
 };
 #endif

@@ -54,8 +54,8 @@ RememberLayoutConf layoutConfFromString(const std::string& conf) {
     return RememberLayoutConf::monitors;
 }
 
-std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude) {
-    std::vector<CSharedPointer<Monitor::CMonitor>> monitors;
+std::vector<PHLMONITOR> currentlyEnabledMonitors(const PHLMONITOR& exclude) {
+    std::vector<PHLMONITOR> monitors;
 
     if (State::monitorState()->monitors().empty())
         return monitors;
@@ -99,7 +99,7 @@ std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CS
     return monitors;
 }
 
-std::string monitorDesc(const CSharedPointer<Monitor::CMonitor>& monitor) {
+std::string monitorDesc(const PHLMONITOR& monitor) {
     if (!monitor)
         return "";
     if (!monitor->m_output)
@@ -107,7 +107,7 @@ std::string monitorDesc(const CSharedPointer<Monitor::CMonitor>& monitor) {
     return monitor->m_description.empty() ? monitor->m_name : monitor->m_description;
 }
 
-CSharedPointer<Monitor::CMonitor> findMonitorByDesc(const std::string& desc, const CSharedPointer<Monitor::CMonitor>& exclude) {
+PHLMONITOR findMonitorByDesc(const std::string& desc, const PHLMONITOR& exclude) {
     for (const auto& mon : currentlyEnabledMonitors(exclude)) {
         if (monitorDesc(mon) == desc)
             return mon;
