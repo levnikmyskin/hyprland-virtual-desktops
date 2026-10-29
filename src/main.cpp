@@ -16,6 +16,10 @@
 
 #include <plugins/PluginAPI.hpp>
 #include <src/desktop/DesktopTypes.hpp>
+#include <src/desktop/state/WindowState.hpp>
+#include <src/desktop/state/GlobalWindowController.hpp>
+#include <src/desktop/state/FocusState.hpp>
+#include <unordered_set>
 #include <vector>
 
 using namespace Hyprutils::Memory;
@@ -363,6 +367,57 @@ void onWindowOpen(PHLWINDOW window) {
         manager->changeActiveDesk(vdesk, true);
 }
 
+// After a monitor removal the vdesk layouts are recomputed for the new
+// monitor set. Workspaces that lived on the removed monitors can end up
+// referenced by no vdesk layout at all; their windows would then be
+// unreachable through the vdesk bindings until the monitors are reattached.
+// Merge those windows into the active vdesk's layout so nothing is lost.
+static void rehomeWindowsOnUnownedWorkspaces() {
+    if (currentlyEnabledMonitors().empty())
+        return;
+
+    std::unordered_set<WORKSPACEID> owned;
+    for (const auto& [_, vdesk] : manager->vdesksMap) {
+        for (const auto& [__, workspaceId] : vdesk->activeLayout(manager->conf))
+            owned.insert(workspaceId);
+    }
+
+    auto active = manager->activeVdesk();
+    auto layout = active->activeLayout(manager->conf);
+    if (layout.empty())
+        return;
+
+    // Prefer the workspace of the focused monitor so the rescued windows
+    // show up where the user is looking; fall back to the first layout entry.
+    WORKSPACEID targetId = layout.begin()->second;
+    auto focusedMonitor  = Desktop::focusState()->monitor().lock();
+    if (focusedMonitor) {
+        auto desc = monitorDesc(focusedMonitor);
+        if (layout.contains(desc))
+            targetId = layout.at(desc);
+    }
+    auto targetWorkspace = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{targetId}).run();
+    if (!targetWorkspace)
+        return;
+
+    for (const auto& window : Desktop::windowState()->windows()) {
+        auto workspace = window->m_workspace;
+        if (!workspace)
+            continue;
+        // Named and special workspaces are not managed by the plugin.
+        auto workspaceId = workspaceNumericID(workspace);
+        if (workspaceId == INVALID_WORKSPACEID)
+            continue;
+        if (owned.contains(workspaceId))
+            continue;
+        if (workspace == targetWorkspace)
+            continue;
+        if (isVerbose())
+            printLog(std::format("re-homing window from unowned workspace {} to workspace {}", workspaceId, targetId));
+        Desktop::globalWindowController()->moveWindowToWorkspace(window, targetWorkspace);
+    }
+}
+
 void onPreMonitorRemoved(PHLMONITOR monitor) {
     if (monitor->m_name == std::string("HEADLESS-1")) {
         return;
@@ -383,6 +438,7 @@ void onMonitorRemoved(PHLMONITOR monitor) {
     if (!currentlyEnabledMonitors(monitor).empty()) {
         manager->invalidateAllLayouts();
         manager->deleteInvalidMonitorsOnAllVdesks(monitor);
+        rehomeWindowsOnUnownedWorkspaces();
         manager->applyCurrentVDesk();
         StickyApps::matchRules(stickyRules, manager);
     }
