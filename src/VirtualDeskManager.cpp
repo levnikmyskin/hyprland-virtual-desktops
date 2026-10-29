@@ -4,7 +4,7 @@
 #include <format>
 #include <ranges>
 #include <algorithm>
-#include <hyprland/src/managers/EventManager.hpp>
+#include <hyprland/src/ipc/s2/S2.hpp>
 #include <hyprland/src/desktop/state/FocusState.hpp>
 #include <src/desktop/state/GlobalWindowController.hpp>
 #include <src/state/MonitorState.hpp>
@@ -70,7 +70,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     auto         layout           = activeVdesk()->activeLayout(conf);
     PHLWORKSPACE focusedWorkspace = nullptr;
     for (const auto& [desc, workspaceId] : layout) {
-        CSharedPointer<Monitor::CMonitor> mon = findMonitorByDesc(desc);
+        PHLMONITOR mon = findMonitorByDesc(desc);
         if (!mon || !mon->m_enabled) {
             printLog("One of the monitors in the vdesk went bonkers...Will try to find another one");
             mon = VirtualDesk::firstAvailableMonitor(enabled);
@@ -81,13 +81,13 @@ void VirtualDeskManager::applyCurrentVDesk() {
             }
         }
 
-        auto workspace = State::workspaceState()->query().id(workspaceId).run();
+        auto workspace = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{workspaceId}).run();
         if (!workspace) {
             printLog("Creating workspace " + std::to_string(workspaceId));
-            workspace = State::workspaceState()->create(workspaceId, mon->m_id);
+            workspace = State::workspaceState()->createNumbered(Workspace::SWorkspaceNumberedID{workspaceId}, mon);
         }
 
-        if (workspace->m_monitor != mon)
+        if (workspaceMonitor(workspace) != mon)
             State::workspacePlacementController()->moveWorkspaceToMonitor(workspace, mon);
 
         // Hack: we change the workspace on the current monitor as our last operation,
@@ -101,7 +101,7 @@ void VirtualDeskManager::applyCurrentVDesk() {
     if (currentMonitor && focusedWorkspace)
         currentMonitor->changeWorkspace(focusedWorkspace, false);
 
-    g_pEventManager->postEvent(SHyprIPCEvent{VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey)});
+    IPC::Socket2::sock()->postEvent(IPC::Socket2::SEvent{VDESKCHANGE_EVENT_STR, std::to_string(m_activeDeskKey)});
 }
 
 int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
@@ -157,17 +157,16 @@ int VirtualDeskManager::moveToDesk(std::string& arg, int vdeskId) {
         }
     }
 
-    PHLWORKSPACE ws = State::workspaceState()->query().id(wid).run();
-    if (!ws) {
-        ws = State::workspaceState()->create(wid, monitor->m_id);
-    }
+    PHLWORKSPACE ws = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{wid}).run();
+    if (!ws && monitor)
+        ws = State::workspaceState()->createNumbered(Workspace::SWorkspaceNumberedID{wid}, monitor.lock());
 
     PHLWINDOW win = window;
     if (!win) {
         win = Desktop::focusState()->window();
     }
 
-    if (win) {
+    if (win && ws) {
         Desktop::globalWindowController()->moveWindowToWorkspace(win, ws);
     }
 
@@ -209,7 +208,7 @@ void VirtualDeskManager::cycleWorkspaces() {
         return;
 
     auto                              n_monitors     = State::monitorState()->monitors().size();
-    CSharedPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
+    PHLMONITOR currentMonitor = Desktop::focusState()->monitor();
     if (!currentMonitor)
         return;
 
@@ -221,10 +220,10 @@ void VirtualDeskManager::cycleWorkspaces() {
         auto otherMon = State::monitorState()->monitors()[other];
         State::workspacePlacementController()->swapActiveWorkspaces(currentMonitor, otherMon);
 
-        auto currentWorkspace = State::workspaceState()->query().id(currentMonitor->activeWorkspaceID()).run();
-        auto otherWorkspace   = State::workspaceState()->query().id(otherMon->activeWorkspaceID()).run();
-        activeVdesk()->changeWorkspaceOnMonitor(currentWorkspace->m_id, currentMonitor);
-        activeVdesk()->changeWorkspaceOnMonitor(otherWorkspace->m_id, otherMon);
+        auto currentWorkspace = currentMonitor->m_activeWorkspace;
+        auto otherWorkspace   = otherMon->m_activeWorkspace;
+        activeVdesk()->changeWorkspaceOnMonitor(workspaceNumericID(currentWorkspace), currentMonitor);
+        activeVdesk()->changeWorkspaceOnMonitor(workspaceNumericID(otherWorkspace), otherMon);
     } else if (n_monitors > 2) {
         printLog("Cycling workspaces is not yet implemented for more than 2 monitors."
                  "\nIf you would like to have this feature, open an issue on virtual-desktops github repo, or even "
@@ -232,7 +231,7 @@ void VirtualDeskManager::cycleWorkspaces() {
     }
 }
 
-void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const CSharedPointer<Monitor::CMonitor>& monitor) {
+void VirtualDeskManager::deleteInvalidMonitorsOnAllVdesks(const PHLMONITOR& monitor) {
     for (const auto& [_, vdesk] : vdesksMap) {
         // recompute active layout
         vdesk->activeLayout(conf, monitor);
@@ -280,7 +279,7 @@ bool VirtualDeskManager::isDeskPopulated(int vdeskId) {
         return false;
     auto& vdesk = vdesksMap[vdeskId];
     for (const auto& [_, workspaceId] : vdesk->activeLayout(conf)) {
-        auto workspace = State::workspaceState()->query().id(workspaceId).run();
+        auto workspace = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{workspaceId}).run();
         if (workspace && workspace->getWindowCount() > 0)
             return true;
     }
@@ -361,8 +360,8 @@ void VirtualDeskManager::invalidateAllLayouts() {
     }
 }
 
-CSharedPointer<Monitor::CMonitor> VirtualDeskManager::getFocusedMonitor() {
-    CWeakPointer<Monitor::CMonitor> currentMonitor = Desktop::focusState()->monitor();
+PHLMONITOR VirtualDeskManager::getFocusedMonitor() {
+    PHLMONITOR currentMonitor = Desktop::focusState()->monitor();
     // This can happen when we receive the "on disconnect" signal
     // let's just take first monitor we can find
     if (currentMonitor && (!currentMonitor->m_enabled || !currentMonitor->m_output)) {
@@ -372,5 +371,5 @@ CSharedPointer<Monitor::CMonitor> VirtualDeskManager::getFocusedMonitor() {
         }
         return nullptr;
     }
-    return currentMonitor.lock();
+    return currentMonitor;
 }

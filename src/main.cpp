@@ -2,8 +2,10 @@
 #include <hyprland/src/config/ConfigManager.hpp>
 #include <hyprland/src/helpers/Color.hpp>
 #include <hyprland/src/helpers/MiscFunctions.hpp>
-#include <hyprland/src/desktop/Workspace.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/event/EventBus.hpp>
+#include <hyprland/src/ipc/s1/S1.hpp>
+#include <hyprland/src/ipc/s2/S2.hpp>
 
 #include "globals.hpp"
 #include "VirtualDeskManager.hpp"
@@ -149,7 +151,7 @@ SDispatchResult moveToNextDeskSilentDispatch(std::string arg) {
     return SDispatchResult{};
 }
 
-std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printVDeskDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     parseNamesConf(config.names->value());
 
     arg.erase(0, PRINTDESK_DISPATCH_STR.length());
@@ -177,10 +179,10 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
         vdeskName = manager->activeVdesk()->name;
     }
 
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::FORMAT_NORMAL) {
         return std::format("Virtual desk {}: {}", vdeskId, vdeskName);
 
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::FORMAT_JSON) {
         return std::format(R"#({{
     "virtualdesk": {{
         "id": {},
@@ -192,11 +194,11 @@ std::string printVDeskDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return "";
 }
 
-std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printStateDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     std::string out;
     int         entries = 0;
 
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::FORMAT_NORMAL) {
         out += "Virtual desks\n";
 
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
@@ -204,7 +206,7 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
             std::string  workspaces;
             bool         first = true;
             for (auto const& [desc, workspaceId] : desk->activeLayout(manager->conf)) {
-                auto workspace = State::workspaceState()->query().id(workspaceId).run();
+                auto workspace = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{workspaceId}).run();
                 if (workspace) {
                     windows += workspace->getWindowCount();
                 }
@@ -228,14 +230,14 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
         // remove last newline
         if (entries > 0)
             out.pop_back();
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::FORMAT_JSON) {
         std::string vdesks;
         for (auto const& [vdeskId, desk] : manager->vdesksMap) {
             unsigned int windows = 0;
             std::string  workspaces;
             bool         first = true;
             for (auto const& [desc, workspaceId] : desk->activeLayout(manager->conf)) {
-                auto workspace = State::workspaceState()->query().id(workspaceId).run();
+                auto workspace = State::workspaceState()->query().numbered(Workspace::SWorkspaceNumberedID{workspaceId}).run();
                 if (workspace) {
                     windows += workspace->getWindowCount();
                 }
@@ -279,17 +281,17 @@ std::string printStateDispatch(eHyprCtlOutputFormat format, std::string arg) {
     return out;
 }
 
-std::string printLayoutDispatch(eHyprCtlOutputFormat format, std::string arg) {
+std::string printLayoutDispatch(IPC::Socket1::eOutputFormat format, std::string arg) {
     auto        activeDesk = manager->activeVdesk();
     auto        layout     = activeDesk->activeLayout(manager->conf);
     std::string out;
-    if (format == eHyprCtlOutputFormat::FORMAT_NORMAL) {
+    if (format == IPC::Socket1::FORMAT_NORMAL) {
         out += std::format("Active desk: {}\nActive layout size: {};\nMonitors:", activeDesk->name, layout.size());
         for (auto const& [desc, wid] : layout) {
             auto mon = findMonitorByDesc(desc);
             out += std::format("\n\t{}; Workspace {}", mon ? escapeJSONStrings(mon->m_name) : desc, wid);
         }
-    } else if (format == eHyprCtlOutputFormat::FORMAT_JSON) {
+    } else if (format == IPC::Socket1::FORMAT_JSON) {
         out += std::format(R"#({{
             "activeDesk": "{}",
             "activeLayoutSize": {},
@@ -329,7 +331,7 @@ void onWorkspaceChange(PHLWORKSPACE workspace) {
     if (monitorLayoutChanging)
         return;
 
-    auto monitor = workspace->m_monitor.lock();
+    auto monitor = workspaceMonitor(workspace);
     if (!monitor || !monitor->m_enabled)
         return;
 
@@ -341,15 +343,19 @@ void onWorkspaceChange(PHLWORKSPACE workspace) {
     // follow along on every vdesk switch. Only skip workspaces that are
     // already owned by a *different* vdesk; our own and not-yet-owned
     // workspaces keep updating the layout as before.
-    if (manager->isWorkspaceOwnedByOtherVdesk(workspace->m_id, vdesk->id)) {
+    WORKSPACEID workspaceId = workspaceNumericID(workspace);
+    if (workspaceId == INVALID_WORKSPACEID)
+        return;
+
+    if (manager->isWorkspaceOwnedByOtherVdesk(workspaceId, vdesk->id)) {
         if (isVerbose())
-            printLog(std::format("not recording workspace {} on vdesk {}: owned by another vdesk", workspace->m_id, vdesk->id));
+            printLog(std::format("not recording workspace {} on vdesk {}: owned by another vdesk", workspaceId, vdesk->id));
         return;
     }
 
-    vdesk->changeWorkspaceOnMonitor(workspace->m_id, monitor);
+    vdesk->changeWorkspaceOnMonitor(workspaceId, monitor);
     if (isVerbose()) {
-        printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspace->m_id) + "; on monitor " + std::to_string(monitor->m_id));
+        printLog("workspace changed on vdesk " + std::to_string(vdesk->id) + ": workspace id " + std::to_string(workspaceId) + "; on monitor " + std::to_string(monitor->m_id));
     }
 }
 
@@ -467,32 +473,22 @@ void onConfigReloaded() {
     manager->loadLayoutConf();
 }
 
+static void registerCommand(const std::string& name, bool exact, std::string (*fn)(IPC::Socket1::eOutputFormat, std::string)) {
+    IPC::Socket1::SCommand cmd;
+    cmd.name = name;
+    cmd.match = exact ? IPC::Socket1::COMMAND_MATCH_EXACT : IPC::Socket1::COMMAND_MATCH_PREFIX;
+    cmd.handler = [fn](const IPC::Socket1::SRequest& request) {
+        return IPC::Socket1::SResponse{fn(request.format, request.command)};
+    };
+    auto ptr = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
+    if (!ptr)
+        printLog(std::format("Failed to register hyprctl command: {}", name));
+}
+
 void registerHyprctlCommands() {
-    SHyprCtlCommand cmd;
-
-    // Register printlayout
-    cmd.name  = PRINTLAYOUT_DISPATCH_STR;
-    cmd.fn    = printLayoutDispatch;
-    cmd.exact = true;
-    auto ptr  = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
-    if (!ptr)
-        printLog(std::format("Failed to register hyprctl command: {}", PRINTLAYOUT_DISPATCH_STR));
-
-    // Register printstate
-    cmd.name  = PRINTSTATE_DISPATCH_STR;
-    cmd.fn    = printStateDispatch;
-    cmd.exact = true;
-    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
-    if (!ptr)
-        printLog(std::format("Failed to register hyprctl command: {}", PRINTSTATE_DISPATCH_STR));
-
-    // Register printdesk
-    cmd.name  = PRINTDESK_DISPATCH_STR;
-    cmd.fn    = printVDeskDispatch;
-    cmd.exact = false;
-    ptr       = HyprlandAPI::registerHyprCtlCommand(PHANDLE, cmd);
-    if (!ptr)
-        printLog(std::format("Failed to register hyprctl command: {}", PRINTDESK_DISPATCH_STR));
+    registerCommand(PRINTLAYOUT_DISPATCH_STR, true, printLayoutDispatch);
+    registerCommand(PRINTSTATE_DISPATCH_STR, true, printStateDispatch);
+    registerCommand(PRINTDESK_DISPATCH_STR, false, printVDeskDispatch);
 }
 
 // Do NOT change this function.

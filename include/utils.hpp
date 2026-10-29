@@ -7,12 +7,19 @@
 #include <string>
 #include <hyprland/src/Compositor.hpp>
 #include <hyprland/src/output/Monitor.hpp>
+#include <hyprland/src/workspace/HLWorkspace.hpp>
 #include <hyprland/src/state/WorkspaceState.hpp>
 #include <hyprland/src/state/WorkspaceQuery.hpp>
 #include <hyprland/src/state/MonitorState.hpp>
 #include <hyprutils/cli/Logger.hpp>
 
 using namespace Hyprutils::Memory;
+
+// Hyprland 0.57 replaced the plain WORKSPACEID int with the
+// Workspace::WorkspaceID variant. Virtual desks only ever deal with numbered
+// (non-special) workspaces, so we keep using the underlying integer type.
+using WORKSPACEID = Workspace::WorkspaceIDContainer;
+constexpr WORKSPACEID INVALID_WORKSPACEID = 0;
 
 const std::string STICKY_RULES_KEYW = "stickyrule";
 
@@ -57,13 +64,13 @@ void                                           printLog(std::string s, Hyprutils
 
 std::string                                    parseMoveDispatch(std::string& arg);
 bool                                           extractBool(std::string& arg);
-std::vector<CSharedPointer<Monitor::CMonitor>> currentlyEnabledMonitors(const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
+std::vector<PHLMONITOR> currentlyEnabledMonitors(const PHLMONITOR& exclude = nullptr);
 
 // Stable identity of a monitor used as a layout key: its EDID description when
 // available, otherwise its connector name.
-std::string                                    monitorDesc(const CSharedPointer<Monitor::CMonitor>& monitor);
+std::string                                    monitorDesc(const PHLMONITOR& monitor);
 // Resolve a layout key back to a currently enabled monitor (nullptr if none).
-CSharedPointer<Monitor::CMonitor>              findMonitorByDesc(const std::string& desc, const CSharedPointer<Monitor::CMonitor>& exclude = nullptr);
+PHLMONITOR              findMonitorByDesc(const std::string& desc, const PHLMONITOR& exclude = nullptr);
 
 std::string                                    ltrim(const std::string& s);
 std::string                                    rtrim(const std::string& s);
